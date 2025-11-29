@@ -85,7 +85,7 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
             } 
             break;
 
-        case 0x7:  // AND / REMU
+        case 0x7:
             if (funct7 == 0x00) {
                 operation = "and";
             }
@@ -108,6 +108,7 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
                  reg_names[rs2]);
     }
 }
+
 
 
 void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
@@ -133,11 +134,11 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             
             break;
 
-        case 0x03: // loads ALU
+        case 0x03: // loads
         
             break;
     
-        case 0x23: // S-type
+        case 0x23: // Stores-type
              
             break;
 
@@ -166,5 +167,5 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             break;
     }   
 
-// 126
 }
+
