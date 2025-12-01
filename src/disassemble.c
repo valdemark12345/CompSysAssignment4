@@ -2,14 +2,7 @@
 #include "memory.h"
 #include <stdio.h>
 #include <stdint.h>
-
-//ABI names ordered
-static const char *reg_names[32] = {
-    "zero","ra","sp","gp","tp","t0","t1","t2",
-    "s0","s1","a0","a1","a2","a3","a4","a5",
-    "a6","a7","s2","s3","s4","s5","s6","s7",
-    "s8","s9","s10","s11","t3","t4","t5","t6"
-};
+#include "common.h"
 
 // Disassembler for R-type instruktioner (opcode = 0x33).
 static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
