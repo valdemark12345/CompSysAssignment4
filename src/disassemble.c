@@ -106,22 +106,15 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
 
 
 void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
-
-    // RISC-V Fields
-    uint32_t opcode = instruction & 0x7F;
-    uint32_t rd = (instruction >> 7) & 0x1F;
-    uint32_t funct3 = (instruction >> 12) & 0x07;
-    uint32_t rs1 = (instruction >> 15) & 0x1F;
-    uint32_t rs2 = (instruction >> 20) & 0x1F;
-    uint32_t funct7 = (instruction >> 25) & 0x7F;
-
-    //Fill the buffer with the original content (Denne linje skal slettes når vi har lavet alle cases)
-    snprintf(result, buf_size, "opcode=%02x rd=%u rs1=%u rs2=%u f3=%x f7=%02x", opcode, rd, rs1, rs2, funct3, funct7);
+    
+    rv_fields_t f = {0};
+    f.opcode = instruction & 0x7F;
 
     // Overwrite the content in the buffer with the operation name etc.
-    switch (opcode) {
+    switch (f.opcode) {
         case 0x33: { //R-type ALU
-            disas_r_type(result, buf_size,rd, rs1, rs2, funct3, funct7);
+            decode_r(instruction, &f); 
+            disas_r_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             }
             break;
         case 0x13: //I-type ALU
