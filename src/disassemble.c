@@ -323,29 +323,18 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             break;
         case 0x13: //I-type ALU
             decode_i(instruction, &f);
-<<<<<<< Updated upstream
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
             break;
 
         case 0x03: // loads
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+
             break;
     
         case 0x23: // Stores-type
             decode_s(instruction, &f);
             disas_s_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
-=======
-            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
-            break;
-
-        case 0x03: // loads
-    
-            break;
-    
-        case 0x23: // Stores-type
-            
->>>>>>> Stashed changes
             break;
 
         case 0x63: //branches ALU
@@ -370,12 +359,12 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
 
         case 0x67: //jalr ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
             break;
 
         case 0x73: //ecall ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
             break;
     }   
 
