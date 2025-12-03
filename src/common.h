@@ -50,11 +50,31 @@ void decode_i(uint32_t inst, rv_fields_t *f) {
     f->imm    = (int32_t)inst >> 20;
 }
 
-void decode_s(uint32_t inst, rv_fields_t *f) {
+void decode_sb(uint32_t inst, rv_fields_t *f) {
     f->opcode = inst & 0x7F;
     f->funct3 = (inst >> 12) & 0x07;
     f->rs1    = (inst >> 15) & 0x1F;
     f->rs2    = (inst >> 20) & 0x1F;
     f->imm    = ((inst >> 7) & 0x1F) | (((int32_t)inst >> 25) << 5);
 }
+
+void decode_u(uint32_t inst, rv_fields_t *f) {
+    f->opcode = inst & 0x7F;
+    f->rd = (inst >> 7) & 0x1F;
+    f->imm    = ((inst >> 12) & 0xFFFFF);
+}
+
+void decode_u(uint32_t inst, rv_fields_t *f) {
+    f->opcode = inst & 0x7F;
+    f->rd = (inst >> 7) & 0x1F;
+    f->imm    = ((inst >> 12) & 0xFFFFF);
+}
+
+void decode_u(uint32_t inst, rv_fields_t *f) {
+    f->opcode = inst & 0x7F;
+    f->rd = (inst >> 7) & 0x1F;
+    f->imm    = ((inst >> 12) & 0xFFFFF);
+}
+
+
 
