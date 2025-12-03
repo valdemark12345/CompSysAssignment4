@@ -4,63 +4,6 @@
 #include <stdint.h>
 #include "common.h"
 
-// Disassembler for I-type instruktioner (opcode = 0.x13)
-static void disas_i_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t funct3, int32_t imm)
-{
-    const char *operation = NULL;
-
-        switch (funct3) {
-            case 0x0: // ADDI
-                operation = "addi";
-                break;
-
-            case 0x2: // SLTI
-                operation = "slti";
-                break;
-
-            case 0x3: // SLTIU
-                operation = "sltiu";
-                break;
-
-            case 0x4: // XORI
-                operation = "xori";
-                break;
-
-            case 0x6: // ORI
-                operation = "ori";
-                break;
-
-            case 0x7: // ANDI
-                operation = "andi";
-                break;
-
-            case 0x1: // SLLI
-                operation = "slli";
-                imm &= 0x1F;
-                break;
-
-            case 0x5:
-                if ((imm >> 10) & 1) {  // Bit 30 = 1 → SRAI
-                    operation = "srai";
-                } else {
-                    operation = "srli";
-                }
-                imm &= 0x1F;     // shamt = imm[4:0]
-                break;
-
-            default:
-                operation = "unknown";
-                break;
-        }
-
-        snprintf(result, buf_size,
-                "%s %s, %s, %d",
-                operation,
-                reg_names[rd],
-                reg_names[rs1],
-                imm);
-        
-}
 
 // Disassembler for R-type instruktioner (opcode = 0x33).
 static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
@@ -160,6 +103,64 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
                  reg_names[rs2]);
     }
 
+}
+
+// Disassembler for I-type instruktioner (opcode = 0.x13)
+static void disas_i_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t funct3, int32_t imm)
+{
+    const char *operation = NULL;
+
+        switch (funct3) {
+            case 0x0: // ADDI
+                operation = "addi";
+                break;
+
+            case 0x2: // SLTI
+                operation = "slti";
+                break;
+
+            case 0x3: // SLTIU
+                operation = "sltiu";
+                break;
+
+            case 0x4: // XORI
+                operation = "xori";
+                break;
+
+            case 0x6: // ORI
+                operation = "ori";
+                break;
+
+            case 0x7: // ANDI
+                operation = "andi";
+                break;
+
+            case 0x1: // SLLI
+                operation = "slli";
+                imm &= 0x1F;
+                break;
+
+            case 0x5:
+                if ((imm >> 10) & 1) {  // Bit 30 = 1 → SRAI
+                    operation = "srai";
+                } else {
+                    operation = "srli";
+                }
+                imm &= 0x1F;     // shamt = imm[4:0]
+                break;
+
+            default:
+                operation = "unknown";
+                break;
+        }
+
+        snprintf(result, buf_size,
+                "%s %s, %s, %d",
+                operation,
+                reg_names[rd],
+                reg_names[rs1],
+                imm);
+        
 }
 
 static void disas_s_type(char *result, size_t buf_size, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t imm)
