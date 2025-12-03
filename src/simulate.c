@@ -1,219 +1,264 @@
-#include "memory.h"
-#include "read_elf.h"
 #include "simulate.h"
 #include "common.h"
+#include "memory.h"
+#include "read_elf.h"
 #include <stdio.h>
 
 struct CPU cpu;
 
-
-struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols* symbols){
-    cpu = init_cpu(mem);
-    cpu.pc = start_addr;
-    struct Stat stats;
-    int instruction;
-    while(cpu.pc != 0){
-        instruction = load_word_from_memory(mem);
-        //Decode instruction and do it
-        // Depending on what type of instruction, do something different with PC.
-        stats.insns += 1;
-        cpu.pc += 4; // Increment program counter
-    }
-    // Start program by loading instructions from PC
-    // Write down each instruction in log file
-    // Add 1 to stats per instruction
-    return stats;
+struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
+{
+  cpu = init_cpu(mem);
+  cpu.pc = start_addr;
+  struct Stat stats;
+  int instruction;
+  while (cpu.pc != 0)
+  {
+    instruction = load_word_from_memory(mem);
+    // Decode instruction and do it
+    //  Depending on what type of instruction, do something different with PC.
+    stats.insns += 1;
+    cpu.pc += 4; // Increment program counter
+  }
+  // Start program by loading instructions from PC
+  // Write down each instruction in log file
+  // Add 1 to stats per instruction
+  return stats;
 }
 
-int load_word_from_memory(struct memory *mem){
-    return (memory_rd_w(mem, cpu.pc));
-}
-
-
+int load_word_from_memory(struct memory *mem) { return (memory_rd_w(mem, cpu.pc)); }
 
 // R-types
 
-void add(int dest, int reg1, int reg2){
-    cpu.registers[dest] = cpu.registers[reg1] + cpu.registers[reg2];
+void add(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] + cpu.registers[reg2];
 }
 
-void mul(int dest, int reg1, int reg2){
-    cpu.registers[dest] = cpu.registers[reg1] * cpu.registers[reg2];
+void mul(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] * cpu.registers[reg2];
 }
 
-void sub(int dest, int reg1, int reg2){
-    cpu.registers[dest] = cpu.registers[reg1] - cpu.registers[reg2];
+void sub(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] - cpu.registers[reg2];
 }
 
-void xor(int dest, int reg1, int reg2){
-    cpu.registers[dest] = cpu.registers[reg1] ^ cpu.registers[reg2];
+void xor(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] ^ cpu.registers[reg2];
 }
 
-void or(int dest, int reg1, int reg2){
-    cpu.registers[dest] = cpu.registers[reg1] | cpu.registers[reg2];
+void or(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] | cpu.registers[reg2];
 }
 
-void and(int dest, int reg1, int reg2){
-    cpu.registers[dest] = cpu.registers[reg1] & cpu.registers[reg2];
+void and(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] & cpu.registers[reg2];
 }
 
-void sll(int dest, int reg1, int reg2){
-    uint32_t shamt = cpu.registers[reg2] & 0x1F;
-    cpu.registers[dest] = cpu.registers[reg1] << shamt;
+void sll(int dest, int reg1, int reg2)
+{
+  uint32_t shamt = cpu.registers[reg2] & 0x1F;
+  cpu.registers[dest] = cpu.registers[reg1] << shamt;
 }
 
-void srl(int dest, int reg1, int reg2){
-    uint32_t shamt = cpu.registers[reg2] & 0x1F;
-    cpu.registers[dest] = cpu.registers[reg1] >> shamt;
+void srl(int dest, int reg1, int reg2)
+{
+  uint32_t shamt = cpu.registers[reg2] & 0x1F;
+  cpu.registers[dest] = cpu.registers[reg1] >> shamt;
 }
 
-void sra(int dest, int reg1, int reg2){ 
-    uint32_t shamt = cpu.registers[reg2] & 0x1F;   // RV32 shift amount is 0–31
-    int32_t val = (int32_t)cpu.registers[reg1];    // reinterpret as signed
+void sra(int dest, int reg1, int reg2)
+{
+  uint32_t shamt = cpu.registers[reg2] & 0x1F; // RV32 shift amount is 0–31
+  int32_t val = (int32_t)cpu.registers[reg1];  // reinterpret as signed
+  cpu.registers[dest] = (uint32_t)(val >> shamt);
+}
+
+void slt(int dest, int reg1, int reg2)
+{
+  int32_t val = (int32_t)cpu.registers[reg1]; // Cast val to signed integer.
+  int32_t val2 = (int32_t)cpu.registers[reg2];
+  cpu.registers[dest] = (val < val2) ? 1 : 0;
+}
+
+void sltu(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = (cpu.registers[reg1] < cpu.registers[reg2]) ? 1 : 0;
+}
+
+// I-types
+
+int check_immediate(int immediate)
+{
+  if (immediate > 0xfff)
+  {
+    printf("Immediate was too large! \n");
+    return 0;
+  }
+  else
+    return 1;
+}
+
+void addi(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = cpu.registers[reg] + imm;
+  }
+}
+
+void xori(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = cpu.registers[reg] ^ imm;
+  }
+}
+
+void ori(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = cpu.registers[reg] | imm;
+  }
+}
+
+void andi(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = cpu.registers[reg] & imm;
+  }
+}
+
+void slli(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = cpu.registers[reg] << imm;
+  }
+}
+
+void srli(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = cpu.registers[reg] >> imm;
+  }
+}
+
+void srai(dest, reg, imm)
+{
+  if (check_immediate(imm))
+  {
+    uint32_t shamt = imm & 0x1F;               // RV32 shift amount is 0–31
+    int32_t val = (int32_t)cpu.registers[reg]; // reinterpret as signed
     cpu.registers[dest] = (uint32_t)(val >> shamt);
+  }
 }
 
-void slt(int dest, int reg1, int reg2){
-    int32_t val = (int32_t)cpu.registers[reg1]; //Cast val to signed integer.
-    int32_t val2 = (int32_t)cpu.registers[reg2];
-    cpu.registers[dest] = (val < val2)?1:0;
+void slti(int dest, int reg1, int imm)
+{
+  if (check_immediate(imm))
+  {
+    int32_t val = (int32_t)cpu.registers[reg1]; // Cast val to signed integer.
+    cpu.registers[dest] = (cpu.registers[reg1] < imm) ? 1 : 0;
+  }
 }
 
-void sltu(int dest, int reg1, int reg2){
-    cpu.registers[dest] = (cpu.registers[reg1] < cpu.registers[reg2])?1:0;
+void sltui(int dest, int reg1, int imm)
+{
+  if (check_immediate(imm))
+  {
+    cpu.registers[dest] = (cpu.registers[reg1] < imm) ? 1 : 0;
+  }
 }
 
-//I-types
+// Loading instructions. All of them are cast to a type before being properly stored as uint32_t
 
-int check_immediate(int immediate){
-    if (immediate > 0xfff){
-        printf("Immediate was too large! \n");
-        return 0;
-    }
-    else return 1;
+void lb(int dest, int imm, int reg)
+{
+  if (check_immediate(imm))
+  {
+    int addr = cpu.registers[reg] + imm;
+    int8_t val = memory_rd_b(&cpu.mem, addr);
+    cpu.registers[dest] = (uint32_t)val;
+  }
 }
 
-void addi(dest, reg, imm){
-    if (check_immediate(imm)){
-        cpu.registers[dest] = cpu.registers[reg] + imm;
-    }
+void lw(int dest, int imm, int reg)
+{
+  if (check_immediate(imm))
+  {
+    int addr = cpu.registers[reg] + imm;
+    int32_t val = memory_rd_w(&cpu.mem, addr);
+    cpu.registers[dest] = (uint32_t)val;
+  }
 }
 
-void xori (dest, reg, imm){
-    if (check_immediate(imm)){
-        cpu.registers[dest] = cpu.registers[reg] ^ imm;
-    }
+void lh(int dest, int imm, int reg)
+{
+  if (check_immediate(imm))
+  {
+    int addr = cpu.registers[reg] + imm;
+    int16_t val = memory_rd_h(&cpu.mem, addr);
+    cpu.registers[dest] = (uint32_t)val;
+  }
 }
 
-void ori (dest, reg, imm){
-    if (check_immediate(imm)){
-        cpu.registers[dest] = cpu.registers[reg] | imm;
-    }
+void lbu(int dest, int imm, int reg)
+{
+  if (check_immediate(imm))
+  {
+    int addr = cpu.registers[reg] + imm;
+    uint8_t val = memory_rd_b(&cpu.mem, addr);
+    cpu.registers[dest] = (uint32_t)val;
+  }
 }
 
-void andi (dest, reg, imm){
-    if (check_immediate(imm)){
-        cpu.registers[dest] = cpu.registers[reg] & imm;
-    }
+void lhu(int dest, int imm, int reg)
+{
+  if (check_immediate(imm))
+  {
+    int addr = cpu.registers[reg] + imm;
+    uint16_t val = memory_rd_b(&cpu.mem, addr);
+    cpu.registers[dest] = (uint32_t)val;
+  }
 }
-
-void slli (dest, reg, imm){
-    if (check_immediate(imm)){
-        cpu.registers[dest] = cpu.registers[reg] << imm;
-    }
-}
-
-void srli (dest, reg, imm){
-    if (check_immediate(imm)){
-        cpu.registers[dest] = cpu.registers[reg] >> imm;
-    }
-}
-
-void srai (dest, reg, imm){
-    if (check_immediate(imm)){
-    uint32_t shamt = imm & 0x1F;   // RV32 shift amount is 0–31
-    int32_t val = (int32_t)cpu.registers[reg];    // reinterpret as signed
-    cpu.registers[dest] = (uint32_t)(val >> shamt);
-    }
-}
-
-void slti(int dest, int reg1, int imm){
-    if (check_immediate(imm)){
-    int32_t val = (int32_t)cpu.registers[reg1]; //Cast val to signed integer.
-    cpu.registers[dest] = (cpu.registers[reg1] < imm)?1:0;
-    }
-}
-
-void sltui(int dest, int reg1, int imm){
-    if (check_immediate(imm)){
-    cpu.registers[dest] = (cpu.registers[reg1] < imm )?1:0;
-    }
-}
-
-void lb(int dest, int imm, int reg){
-    if (check_immediate(imm)){
-        int addr = cpu.registers[reg] + imm;
-        int8_t val = memory_rd_b(&cpu.mem, addr);
-        cpu.registers[dest] = (uint32_t)val;
-    }
-}
-
-void lw(int dest, int imm, int reg){
-    if (check_immediate(imm)){
-        int addr = cpu.registers[reg] + imm;
-        int32_t val = memory_rd_w(&cpu.mem, addr);
-        cpu.registers[dest] = (uint32_t)val;
-    }
-}
-
-void lh(int dest, int imm, int reg){
-    if (check_immediate(imm)){
-        int addr = cpu.registers[reg] + imm;
-        int16_t val = memory_rd_h(&cpu.mem, addr);
-        cpu.registers[dest] = (uint32_t)val;
-    }
-}
-
-void lbu(int dest, int imm, int reg){
-    if (check_immediate(imm)){
-        int addr = cpu.registers[reg] + imm;
-        uint8_t val = memory_rd_b(&cpu.mem, addr);
-        cpu.registers[dest] = (uint32_t)val;
-    }
-}
-
-void lhu(int dest, int imm, int reg){
-    if (check_immediate(imm)){
-        int addr = cpu.registers[reg] + imm;
-        uint16_t val = memory_rd_b(&cpu.mem, addr);
-        cpu.registers[dest] = (uint32_t)val;
-    }
-}
-
 
 // U types
 
-int check_upper_immediate(int upper_immediate){
-    if (upper_immediate > 0xfffff){
-        printf("upper_immediate was too large! \n");
-        return 0;
-    }
-    else return 1;
+int check_upper_immediate(int upper_immediate)
+{
+  if (upper_immediate > 0xfffff)
+  {
+    printf("upper_immediate was too large! \n");
+    return 0;
+  }
+  else
+    return 1;
 }
 
-void lui(int dest, int upper_immediate){
-    if (check_upper_immediate(upper_immediate)){
-        cpu.registers[dest] = upper_immediate;
-        cpu.registers[dest] << 12;
-    }
+void lui(int dest, int upper_immediate)
+{
+  if (check_upper_immediate(upper_immediate))
+  {
+    cpu.registers[dest] = upper_immediate;
+    cpu.registers[dest] << 12;
+  }
 }
 
-void auipc(int dest, int upper_immediate){
-    if (check_upper_immediate(upper_immediate)){
+void auipc(int dest, int upper_immediate)
+{
+  if (check_upper_immediate(upper_immediate))
+  {
     cpu.registers[dest] = cpu.pc + (upper_immediate << 12);
-    }
+  }
 }
 
-void ecall(){
-    cpu.pc = 0;
-}
+void ecall() { cpu.pc = 0; }
