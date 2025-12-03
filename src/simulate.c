@@ -8,7 +8,7 @@ struct CPU cpu;
 
 
 struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols* symbols){
-    cpu = init_cpu();
+    cpu = init_cpu(mem);
     cpu.pc = start_addr;
     struct Stat stats;
     int instruction;
@@ -74,13 +74,14 @@ void sra(int dest, int reg1, int reg2){
 }
 
 void slt(int dest, int reg1, int reg2){
-    cpu.registers[dest] = (cpu.registers[reg1] < cpu.registers[reg2])?1:0;
+    int32_t val = (int32_t)cpu.registers[reg1]; //Cast val to signed integer.
+    int32_t val2 = (int32_t)cpu.registers[reg2];
+    cpu.registers[dest] = (val < val2)?1:0;
 }
 
 void sltu(int dest, int reg1, int reg2){
     cpu.registers[dest] = (cpu.registers[reg1] < cpu.registers[reg2])?1:0;
 }
-
 
 //I-types
 
@@ -90,6 +91,103 @@ int check_immediate(int immediate){
         return 0;
     }
     else return 1;
+}
+
+void addi(dest, reg, imm){
+    if (check_immediate(imm)){
+        cpu.registers[dest] = cpu.registers[reg] + imm;
+    }
+}
+
+void xori (dest, reg, imm){
+    if (check_immediate(imm)){
+        cpu.registers[dest] = cpu.registers[reg] ^ imm;
+    }
+}
+
+void ori (dest, reg, imm){
+    if (check_immediate(imm)){
+        cpu.registers[dest] = cpu.registers[reg] | imm;
+    }
+}
+
+void andi (dest, reg, imm){
+    if (check_immediate(imm)){
+        cpu.registers[dest] = cpu.registers[reg] & imm;
+    }
+}
+
+void slli (dest, reg, imm){
+    if (check_immediate(imm)){
+        cpu.registers[dest] = cpu.registers[reg] << imm;
+    }
+}
+
+void srli (dest, reg, imm){
+    if (check_immediate(imm)){
+        cpu.registers[dest] = cpu.registers[reg] >> imm;
+    }
+}
+
+void srai (dest, reg, imm){
+    if (check_immediate(imm)){
+    uint32_t shamt = imm & 0x1F;   // RV32 shift amount is 0–31
+    int32_t val = (int32_t)cpu.registers[reg];    // reinterpret as signed
+    cpu.registers[dest] = (uint32_t)(val >> shamt);
+    }
+}
+
+void slti(int dest, int reg1, int imm){
+    if (check_immediate(imm)){
+    int32_t val = (int32_t)cpu.registers[reg1]; //Cast val to signed integer.
+    cpu.registers[dest] = (cpu.registers[reg1] < imm)?1:0;
+    }
+}
+
+void sltui(int dest, int reg1, int imm){
+    if (check_immediate(imm)){
+    cpu.registers[dest] = (cpu.registers[reg1] < imm )?1:0;
+    }
+}
+
+void lb(int dest, int imm, int reg){
+    if (check_immediate(imm)){
+        int addr = cpu.registers[reg] + imm;
+        int8_t val = memory_rd_b(&cpu.mem, addr);
+        cpu.registers[dest] = (uint32_t)val;
+    }
+}
+
+void lw(int dest, int imm, int reg){
+    if (check_immediate(imm)){
+        int addr = cpu.registers[reg] + imm;
+        int32_t val = memory_rd_w(&cpu.mem, addr);
+        cpu.registers[dest] = (uint32_t)val;
+    }
+}
+
+void lh(int dest, int imm, int reg){
+    if (check_immediate(imm)){
+        int addr = cpu.registers[reg] + imm;
+        int16_t val = memory_rd_h(&cpu.mem, addr);
+        cpu.registers[dest] = (uint32_t)val;
+    }
+}
+
+void lbu(int dest, int imm, int reg){
+    if (check_immediate(imm)){
+        int addr = cpu.registers[reg] + imm;
+        uint8_t val = memory_rd_b(&cpu.mem, addr);
+        cpu.registers[dest] = (uint32_t)val;
+    }
+}
+
+void lhu(int dest, int imm, int reg){
+    if (check_immediate(imm)){
+        int addr = cpu.registers[reg] + imm;
+        uint16_t val = memory_rd_b(&cpu.mem, addr);
+        cpu.registers[dest] = (uint32_t)val;
+    }
 }
 
 

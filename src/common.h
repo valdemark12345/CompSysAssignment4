@@ -14,10 +14,11 @@ static const char *reg_names[32] = {
 
 struct CPU {
     uint32_t registers[32];
+    struct memory* mem;
     uint32_t pc;
 };
 
-struct CPU init_cpu(){
+struct CPU init_cpu(struct memory* mem){
     struct CPU cpu;
     cpu.registers[0] = 0;
     return cpu;
