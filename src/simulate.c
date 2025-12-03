@@ -14,8 +14,10 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
     int instruction;
     while(cpu.pc != 0){
         instruction = load_word_from_memory(mem);
-        
+        //Decode instruction and do it
+        // Depending on what type of instruction, do something different with PC.
         stats.insns += 1;
+        cpu.pc += 4; // Increment program counter
     }
     // Start program by loading instructions from PC
     // Write down each instruction in log file
