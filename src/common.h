@@ -25,7 +25,6 @@ struct CPU* init_cpu(){
 
 typedef struct {
     uint32_t opcode;
-    
     uint32_t rd;
     uint32_t rs1;
     uint32_t rs2;

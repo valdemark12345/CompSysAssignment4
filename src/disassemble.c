@@ -4,6 +4,64 @@
 #include <stdint.h>
 #include "common.h"
 
+// Disassembler for I-type instruktioner (opcode = 0.x13)
+static void disas_i_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t funct3, int32_t imm)
+{
+    const char *operation = NULL;
+
+        switch (funct3) {
+            case 0x0: // ADDI
+                operation = "addi";
+                break;
+
+            case 0x2: // SLTI
+                operation = "slti";
+                break;
+
+            case 0x3: // SLTIU
+                operation = "sltiu";
+                break;
+
+            case 0x4: // XORI
+                operation = "xori";
+                break;
+
+            case 0x6: // ORI
+                operation = "ori";
+                break;
+
+            case 0x7: // ANDI
+                operation = "andi";
+                break;
+
+            case 0x1: // SLLI
+                operation = "slli";
+                imm &= 0x1F;
+                break;
+
+            case 0x5:
+                if ((imm >> 10) & 1) {  // Bit 30 = 1 → SRAI
+                    operation = "srai";
+                } else {
+                    operation = "srli";
+                }
+                imm &= 0x1F;     // shamt = imm[4:0]
+                break;
+
+            default:
+                operation = "unknown";
+                break;
+        }
+
+        snprintf(result, buf_size,
+                "%s %s, %s, %d",
+                operation,
+                reg_names[rd],
+                reg_names[rs1],
+                imm);
+        
+}
+
 // Disassembler for R-type instruktioner (opcode = 0x33).
 static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
 {
@@ -56,7 +114,7 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
             else if (funct7 == 0x01) {
                 operation = "div";
             }
-                break;
+            break;
 
         case 0x5:
             if (funct7 == 0x00) {
@@ -259,12 +317,13 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
     // Overwrite the content in the buffer with the operation name etc.
     switch (f.opcode) {
         case 0x33: { //R-type ALU
-            decode_r(instruction, &f); 
+            decode_r(instruction, &f);
             disas_r_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             }
             break;
         case 0x13: //I-type ALU
             decode_i(instruction, &f);
+<<<<<<< Updated upstream
             disas_i_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             break;
 
@@ -276,6 +335,17 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
         case 0x23: // Stores-type
             decode_s(instruction, &f);
             disas_s_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+=======
+            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+            break;
+
+        case 0x03: // loads
+    
+            break;
+    
+        case 0x23: // Stores-type
+            
+>>>>>>> Stashed changes
             break;
 
         case 0x63: //branches ALU
