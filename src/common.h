@@ -17,12 +17,10 @@ struct CPU
   uint32_t pc;
 };
 
-struct CPU init_cpu(struct memory *mem)
-{
-  struct CPU cpu;
-  cpu.mem = mem;
-  cpu.registers[0] = 0;
-  return cpu;
+static struct CPU init_cpu(void){
+    struct CPU cpu;
+    cpu.registers[0] = 0;
+    return cpu;
 }
 
 typedef struct
@@ -36,7 +34,7 @@ typedef struct
   int32_t imm;
 } rv_fields_t;
 
-void decode_r(uint32_t inst, rv_fields_t *f)
+static void decode_r(uint32_t inst, rv_fields_t *f)
 {
   f->opcode = inst & 0x7F;
   f->rd = (inst >> 7) & 0x1F;
@@ -46,7 +44,7 @@ void decode_r(uint32_t inst, rv_fields_t *f)
   f->funct7 = (inst >> 25) & 0x7F;
 }
 
-void decode_i(uint32_t inst, rv_fields_t *f)
+static void decode_i(uint32_t inst, rv_fields_t *f)
 {
   f->opcode = inst & 0x7F;
   f->rd = (inst >> 7) & 0x1F;
@@ -55,7 +53,7 @@ void decode_i(uint32_t inst, rv_fields_t *f)
   f->imm = (int32_t)inst >> 20;
 }
 
-void decode_s(uint32_t inst, rv_fields_t *f)
+static void decode_s(uint32_t inst, rv_fields_t *f)
 {
   f->opcode = inst & 0x7F;
   f->funct3 = (inst >> 12) & 0x07;
@@ -64,7 +62,7 @@ void decode_s(uint32_t inst, rv_fields_t *f)
   f->imm = ((inst >> 7) & 0x1F) | (((int32_t)inst >> 25) << 5);
 }
 
-void decode_b(uint32_t inst, rv_fields_t *f)
+static void decode_b(uint32_t inst, rv_fields_t *f)
 {
   f->opcode = inst & 0x7F;
   f->funct3 = (inst >> 12) & 0x07;
@@ -86,14 +84,14 @@ void decode_b(uint32_t inst, rv_fields_t *f)
   f->imm = buf_imm;
 }
 
-void decode_u(uint32_t inst, rv_fields_t *f)
+static void decode_u(uint32_t inst, rv_fields_t *f)
 {
   f->opcode = inst & 0x7F;
   f->rd = (inst >> 7) & 0x1F;
   f->imm = ((inst >> 12) & 0xFFFFF);
 }
 
-void decode_j(uint32_t inst, rv_fields_t *f)
+static void decode_j(uint32_t inst, rv_fields_t *f)
 {
   f->opcode = inst & 0x7F;
   f->rd = (inst >> 7) & 0x1F;

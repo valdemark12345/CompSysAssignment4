@@ -10,7 +10,6 @@ int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
 
 struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
 {
-  cpu = init_cpu(mem);
   cpu.pc = start_addr;
   struct Stat stats;
   int instruction;

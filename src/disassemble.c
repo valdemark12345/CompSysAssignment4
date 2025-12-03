@@ -278,11 +278,16 @@ static void disas_load_type(char *result, size_t buf_size, uint32_t rd, uint32_t
 
 
 
-void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size){
+void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
+    (void)addr;
+    (void)symbols;
+    if (buf_size == 0) return;
+
     
     rv_fields_t f = {0};
     f.opcode = instruction & 0x7F;
     const char *operation = NULL;
+
 
     // Overwrite the content in the buffer with the operation name etc.
     switch (f.opcode) {
@@ -292,29 +297,28 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             disas_r_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             }
             break;
-
-        case 0x13: //I-type ALU
-            print("I got into I-Type");
+        case 0x13: {//I-type ALU
             decode_i(instruction, &f);
             disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
-
-        case 0x03: // loads
+            }
+        case 0x03: { // loads
             decode_i(instruction, &f);
             disas_load_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+            }
             break;
     
-        case 0x23: // Stores-type
+        case 0x23: { // Stores-type
             decode_s(instruction, &f);
             disas_s_type(result, buf_size, f.rs1, f.rs2, f.funct3, f.imm);
             break;
-
-        case 0x63: //branches ALU
+            }
+        case 0x63: { //branches ALU
             decode_b(instruction, &f);
             disas_b_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
-
-        case 0x37: //lui ALU
+            }
+        case 0x37: { //lui ALU
             decode_u(instruction, &f);
             operation = "lui";
             if (operation)
@@ -326,8 +330,8 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         f.imm);
             }
             break;
-
-        case 0x17: //auipc ALU
+            }
+        case 0x17: { //auipc ALU
             decode_u(instruction, &f);
             operation = "auipc";
 
@@ -340,9 +344,9 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         f.imm);
             }
             break;
-    
+            }
 
-        case 0x6F: //jal ALU
+        case 0x6F: { //jal ALU
             decode_j(instruction, &f);
 
             operation = "jal";
@@ -356,8 +360,8 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         f.imm);
             }
             break;
-
-        case 0x67: //jalr ALU
+            }
+        case 0x67: { //jalr ALU
             decode_i(instruction, &f);
 
             operation = "jalr";
@@ -372,8 +376,8 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         f.imm);
             }
             break;
-
-        case 0x73: //ecall ALU
+            }
+        case 0x73: { //ecall ALU
             decode_i(instruction, &f);
 
             operation = "jalr";
@@ -388,6 +392,7 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         f.imm);
             }        
             break;
+            }
     }   
 }
 
