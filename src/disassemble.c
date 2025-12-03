@@ -315,9 +315,9 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             }
         case 0x63: { //branches ALU
             decode_b(instruction, &f);
-            disas_b_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
+            disas_b_type(result, buf_size, f.rs1, f.rs2, f.funct3, f.imm);
             break;
-            }
+        }
         case 0x37: { //lui ALU
             decode_u(instruction, &f);
             operation = "lui";
