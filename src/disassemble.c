@@ -101,8 +101,137 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
                  reg_names[rs1],
                  reg_names[rs2]);
     }
+
 }
 
+static void disas_s_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
+{
+    const char *operation = NULL;
+
+    switch (funct3) {
+        case 0x0:
+            operation = "sb";
+
+            break;
+        case 0x1:
+            operation = "sh";
+
+            break;
+        case 0x2:
+            operation = "sw";
+          
+            break;
+
+        default:
+            break;
+    }
+
+    if (operation)
+    {
+        snprintf(result, buf_size,
+                 "%s %s,%s,%s",
+                 operation,
+                 reg_names[rd],
+                 reg_names[rs1],
+                 reg_names[rs2]);
+    }
+}
+
+static void disas_b_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
+{
+    const char *operation = NULL;
+
+    switch (funct3) {
+        case 0x0:
+            operation = "beq";
+
+            break;
+        case 0x1:
+            operation = "bne";
+
+            break;
+        case 0x4:
+            operation = "blt";
+          
+            break;
+
+        case 0x5:
+            operation = "bge";
+          
+            break;
+
+        case 0x6:
+            operation = "bltu";
+          
+            break;
+
+        case 0x7:
+            operation = "bgeu";
+          
+            break;
+
+        default:
+            break;
+    }
+
+    if (operation)
+    {
+        snprintf(result, buf_size,
+                 "%s %s,%s,%s",
+                 operation,
+                 reg_names[rd],
+                 reg_names[rs1],
+                 reg_names[rs2]);
+    }
+}
+
+static void disas_u_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
+{
+    const char *operation = NULL;
+
+    switch (funct3) {
+        case 0x0:
+            operation = "beq";
+
+            break;
+        case 0x1:
+            operation = "bne";
+
+            break;
+        case 0x4:
+            operation = "blt";
+          
+            break;
+
+        case 0x5:
+            operation = "bge";
+          
+            break;
+
+        case 0x6:
+            operation = "bltu";
+          
+            break;
+
+        case 0x7:
+            operation = "bgeu";
+          
+            break;
+
+        default:
+            break;
+    }
+
+    if (operation)
+    {
+        snprintf(result, buf_size,
+                 "%s %s,%s,%s",
+                 operation,
+                 reg_names[rd],
+                 reg_names[rs1],
+                 reg_names[rs2]);
+    }
+}
 
 
 void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
