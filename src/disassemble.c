@@ -105,61 +105,58 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
 
 }
 
+/* static void disas_i_type */
+
 // Disassembler for I-type instruktioner (opcode = 0.x13)
 static void disas_i_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t funct3, int32_t imm)
 {
     const char *operation = NULL;
 
-        switch (funct3) {
-            case 0x0: // ADDI
-                operation = "addi";
-                break;
+    switch (funct3) {
+        case 0x0: // ADDI
+            operation = "addi";
+            break;
 
-            case 0x2: // SLTI
-                operation = "slti";
-                break;
+        case 0x2: // SLTI
+            operation = "slti";
+            break;
 
-            case 0x3: // SLTIU
-                operation = "sltiu";
-                break;
+        case 0x3: // SLTIU
+            operation = "sltiu";
+            break;
 
-            case 0x4: // XORI
-                operation = "xori";
-                break;
+        case 0x4: // XORI
+            operation = "xori";
+            break;
 
-            case 0x6: // ORI
-                operation = "ori";
-                break;
+        case 0x6: // ORI
+            operation = "ori";
+            break;
 
-            case 0x7: // ANDI
-                operation = "andi";
-                break;
+        case 0x7: // ANDI
+            operation = "andi";
+            break;
 
-            case 0x1: // SLLI
-                operation = "slli";
-                imm &= 0x1F;
-                break;
+        case 0x1: // SLLI
+            operation = "slli";
+            imm &= 0x1F;
+            break;
 
-            case 0x5:
-                if ((imm >> 10) & 1) {  // Bit 30 = 1 → SRAI
-                    operation = "srai";
-                } else {
-                    operation = "srli";
-                }
-                imm &= 0x1F;     // shamt = imm[4:0]
-                break;
+        case 0x5:
+            if ((imm >> 10) & 1) {  // Bit 30 = 1 → SRAI
+                operation = "srai";
+            } else {
+                operation = "srli";
+            }
+            imm &= 0x1F;     // shamt = imm[4:0]
+            break;
 
-            default:
-                operation = "unknown";
-                break;
+        default:
+            operation = "unknown";
+            break;
         }
 
-        snprintf(result, buf_size,
-                "%s %s, %s, %d",
-                operation,
-                reg_names[rd],
-                reg_names[rs1],
-                imm);
+    snprintf(result, buf_size, "%s %s, %s, %d", operation, reg_names[rd], reg_names[rs1], imm);
         
 }
 
@@ -244,6 +241,42 @@ static void disas_b_type(char *result, size_t buf_size, uint32_t rs1, uint32_t r
     }
 }
 
+static void disas_load_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t funct3, int32_t imm)
+{
+    const char *operation = NULL;
+
+    switch (funct3) {
+        case 0x0:
+            operation = "lb";
+
+            break;
+        case 0x1:
+            operation = "lh";
+
+            break;
+        case 0x2:
+            operation = "lw";
+
+            break;
+        case 0x4:
+            operation = "lbu";
+
+            break;
+        case 0x5:
+            operation = "lhu";
+
+            break;
+
+        default:
+            operation = "unknown";
+
+            break;
+    }
+
+    snprintf(result, buf_size, "%s %s, %d(%s)", operation, reg_names[rd], imm, reg_names[rs1]);
+}
+
+
 
 void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
     
@@ -260,12 +293,12 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
         case 0x13: //I-type ALU
             decode_i(instruction, &f);
             disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
-
             break;
 
         case 0x03: // loads
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
+            disas_load_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+
             break;
     
         case 0x23: // Stores-type
@@ -307,6 +340,7 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         f.imm);
             }
             break;
+    
 
         case 0x6F: //jal ALU
             decode_j(instruction, &f);
