@@ -17,9 +17,9 @@ struct CPU {
     uint32_t pc;
 };
 
-struct CPU* init_cpu(){
-    struct CPU* cpu = malloc(sizeof(struct CPU));
-    cpu->registers[0] = 0;
+struct CPU init_cpu(){
+    struct CPU cpu;
+    cpu.registers[0] = 0;
     return cpu;
 }
 
