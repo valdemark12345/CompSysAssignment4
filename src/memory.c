@@ -7,7 +7,7 @@ struct memory
   int *pages[0x10000];
 };
 
-struct memory *memory_create()
+struct memory *memory_create(void)
 {
   return calloc(sizeof(struct memory), 1);
 }

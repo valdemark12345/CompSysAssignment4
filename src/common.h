@@ -20,6 +20,7 @@ struct CPU
 struct CPU init_cpu(struct memory *mem)
 {
   struct CPU cpu;
+  cpu.mem = mem;
   cpu.registers[0] = 0;
   return cpu;
 }

@@ -6,6 +6,8 @@
 
 struct CPU cpu;
 
+int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
+
 struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
 {
   cpu = init_cpu(mem);
@@ -14,7 +16,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   int instruction;
   while (cpu.pc != 0)
   {
-    instruction = load_word_from_memory(mem);
+    instruction = load_word_from_memory();
     // Decode instruction and do it
     //  Depending on what type of instruction, do something different with PC.
     stats.insns += 1;
@@ -25,8 +27,6 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   // Add 1 to stats per instruction
   return stats;
 }
-
-int load_word_from_memory(struct memory *mem) { return (memory_rd_w(mem, cpu.pc)); }
 
 // R-types
 
@@ -104,7 +104,7 @@ int check_immediate(int immediate)
     return 1;
 }
 
-void addi(dest, reg, imm)
+void addi(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -112,7 +112,7 @@ void addi(dest, reg, imm)
   }
 }
 
-void xori(dest, reg, imm)
+void xori(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -120,7 +120,7 @@ void xori(dest, reg, imm)
   }
 }
 
-void ori(dest, reg, imm)
+void ori(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -128,7 +128,7 @@ void ori(dest, reg, imm)
   }
 }
 
-void andi(dest, reg, imm)
+void andi(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -136,7 +136,7 @@ void andi(dest, reg, imm)
   }
 }
 
-void slli(dest, reg, imm)
+void slli(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -144,7 +144,7 @@ void slli(dest, reg, imm)
   }
 }
 
-void srli(dest, reg, imm)
+void srli(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -152,7 +152,7 @@ void srli(dest, reg, imm)
   }
 }
 
-void srai(dest, reg, imm)
+void srai(int dest, int reg, int imm)
 {
   if (check_immediate(imm))
   {
@@ -167,7 +167,7 @@ void slti(int dest, int reg1, int imm)
   if (check_immediate(imm))
   {
     int32_t val = (int32_t)cpu.registers[reg1]; // Cast val to signed integer.
-    cpu.registers[dest] = (cpu.registers[reg1] < imm) ? 1 : 0;
+    cpu.registers[dest] = (val < imm) ? 1 : 0;
   }
 }
 
@@ -175,7 +175,7 @@ void sltui(int dest, int reg1, int imm)
 {
   if (check_immediate(imm))
   {
-    cpu.registers[dest] = (cpu.registers[reg1] < imm) ? 1 : 0;
+    cpu.registers[dest] = (cpu.registers[reg1] < (uint32_t)imm) ? 1 : 0;
   }
 }
 
@@ -186,7 +186,7 @@ void lb(int dest, int imm, int reg)
   if (check_immediate(imm))
   {
     int addr = cpu.registers[reg] + imm;
-    int8_t val = memory_rd_b(&cpu.mem, addr);
+    int8_t val = memory_rd_b(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
 }
@@ -196,7 +196,7 @@ void lw(int dest, int imm, int reg)
   if (check_immediate(imm))
   {
     int addr = cpu.registers[reg] + imm;
-    int32_t val = memory_rd_w(&cpu.mem, addr);
+    int32_t val = memory_rd_w(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
 }
@@ -206,7 +206,7 @@ void lh(int dest, int imm, int reg)
   if (check_immediate(imm))
   {
     int addr = cpu.registers[reg] + imm;
-    int16_t val = memory_rd_h(&cpu.mem, addr);
+    int16_t val = memory_rd_h(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
 }
@@ -216,7 +216,7 @@ void lbu(int dest, int imm, int reg)
   if (check_immediate(imm))
   {
     int addr = cpu.registers[reg] + imm;
-    uint8_t val = memory_rd_b(&cpu.mem, addr);
+    uint8_t val = memory_rd_b(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
 }
@@ -226,10 +226,40 @@ void lhu(int dest, int imm, int reg)
   if (check_immediate(imm))
   {
     int addr = cpu.registers[reg] + imm;
-    uint16_t val = memory_rd_b(&cpu.mem, addr);
+    uint16_t val = memory_rd_b(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
 }
+
+// S types
+
+void sb(int reg1, int reg2, int imm){
+    if (check_immediate(imm))
+    {
+      int addr = cpu.registers[reg1] + imm;
+      uint8_t val = (uint8_t)cpu.registers[reg2];
+      memory_wr_b(cpu.mem, addr, val);
+  }
+}
+
+void sh(int reg1, int reg2, int imm){
+    if (check_immediate(imm))
+    {
+      int addr = cpu.registers[reg1] + imm;
+      uint16_t val = (uint16_t)cpu.registers[reg2];
+      memory_wr_h(cpu.mem, addr, val);
+  }
+}
+
+void sw(int reg1, int reg2, int imm){
+    if (check_immediate(imm))
+    {
+      int addr = cpu.registers[reg1] + imm;
+      uint32_t val = (uint32_t)cpu.registers[reg2];
+      memory_wr_w(cpu.mem, addr, val);
+  }
+}
+
 
 // U types
 
@@ -249,7 +279,7 @@ void lui(int dest, int upper_immediate)
   if (check_upper_immediate(upper_immediate))
   {
     cpu.registers[dest] = upper_immediate;
-    cpu.registers[dest] << 12;
+    cpu.registers[dest] = cpu.registers[dest] << 12;
   }
 }
 
@@ -261,4 +291,5 @@ void auipc(int dest, int upper_immediate)
   }
 }
 
-void ecall() { cpu.pc = 0; }
+void ecall(void) { cpu.pc = 0; }
+
