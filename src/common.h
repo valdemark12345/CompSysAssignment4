@@ -50,7 +50,7 @@ void decode_i(uint32_t inst, rv_fields_t *f) {
     f->imm    = (int32_t)inst >> 20;
 }
 
-void decode_sb(uint32_t inst, rv_fields_t *f) {
+void decode_s(uint32_t inst, rv_fields_t *f) {
     f->opcode = inst & 0x7F;
     f->funct3 = (inst >> 12) & 0x07;
     f->rs1    = (inst >> 15) & 0x1F;
@@ -58,10 +58,26 @@ void decode_sb(uint32_t inst, rv_fields_t *f) {
     f->imm    = ((inst >> 7) & 0x1F) | (((int32_t)inst >> 25) << 5);
 }
 
-void decode_u(uint32_t inst, rv_fields_t *f) {
+void decode_b(uint32_t inst, rv_fields_t *f) {
     f->opcode = inst & 0x7F;
-    f->rd = (inst >> 7) & 0x1F;
-    f->imm    = ((inst >> 12) & 0xFFFFF);
+    f->funct3 = (inst >> 12) & 0x07;
+    f->rs1 = (inst >> 15) & 0x1F;
+    f->rs2 = (inst >> 20) & 0x1F;
+
+    //First define all different imms 
+    int32_t imm11 = (inst >> 7) & 0x01;
+    int32_t imm4_1 = (inst >> 8) & 0x0F;
+    int32_t imm10_5 = (inst >> 25) & 0x3F;
+    int32_t imm12 = (inst >> 31) & 0x01;
+
+    //Then connect
+    int32_t buf_imm = 0; 
+    buf_imm |= (imm12 << 12);
+    buf_imm |= (imm11 << 11);
+    buf_imm |= (imm10_5 << 5);
+    buf_imm |= (imm4_1 << 1);
+    f->imm = buf_imm;
+
 }
 
 void decode_u(uint32_t inst, rv_fields_t *f) {
@@ -70,10 +86,23 @@ void decode_u(uint32_t inst, rv_fields_t *f) {
     f->imm    = ((inst >> 12) & 0xFFFFF);
 }
 
-void decode_u(uint32_t inst, rv_fields_t *f) {
+void decode_j(uint32_t inst, rv_fields_t *f) {
     f->opcode = inst & 0x7F;
     f->rd = (inst >> 7) & 0x1F;
-    f->imm    = ((inst >> 12) & 0xFFFFF);
+
+    //First define all different imms 
+    int32_t imm19_12 = (inst >> 12) & 0xFF;
+    int32_t imm11 = (inst >> 20) & 0x01;
+    int32_t imm10_1 = (inst >> 21) & 0x3FF;
+    int32_t imm20 = (inst >> 31) & 0x01;
+
+    //Then connect
+    int32_t buf_imm = 0; 
+    buf_imm |= (imm20 << 20);
+    buf_imm |= (imm19_12 << 12);
+    buf_imm |= (imm11 << 11);
+    buf_imm |= (imm10_1 << 1);
+    f->imm = buf_imm;
 }
 
 
