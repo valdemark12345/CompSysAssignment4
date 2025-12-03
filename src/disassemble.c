@@ -162,7 +162,7 @@ static void disas_r_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
 
 }
 
-static void disas_s_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
+static void disas_s_type(char *result, size_t buf_size, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t imm)
 {
     const char *operation = NULL;
 
@@ -187,15 +187,15 @@ static void disas_s_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
     if (operation)
     {
         snprintf(result, buf_size,
-                 "%s %s,%s,%s",
+                 "%s %s,%s, %d",
                  operation,
-                 reg_names[rd],
                  reg_names[rs1],
-                 reg_names[rs2]);
+                 reg_names[rs2],
+                imm);
     }
 }
 
-static void disas_b_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
+static void disas_b_type(char *result, size_t buf_size, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t imm)
 {
     const char *operation = NULL;
 
@@ -235,76 +235,11 @@ static void disas_b_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs
     if (operation)
     {
         snprintf(result, buf_size,
-                 "%s %s,%s,%s",
+                 "%s %s,%s,%d",
                  operation,
-                 reg_names[rd],
                  reg_names[rs1],
-                 reg_names[rs2]);
-    }
-}
-
-static void disas_u_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
-{
-    const char *operation = NULL;
-
-    switch (funct3) {
-        case 0x0:
-            operation = "beq";
-
-            break;
-        case 0x1:
-            operation = "bne";
-
-            break;
-        case 0x4:
-            operation = "blt";
-          
-            break;
-
-        case 0x5:
-            operation = "bge";
-          
-            break;
-
-        case 0x6:
-            operation = "bltu";
-          
-            break;
-
-        case 0x7:
-            operation = "bgeu";
-          
-            break;
-
-        default:
-            break;
-    }
-
-    if (operation)
-    {
-        snprintf(result, buf_size,
-                 "%s %s,%s,%s",
-                 operation,
-                 reg_names[rd],
-                 reg_names[rs1],
-                 reg_names[rs2]);
-    }
-}
-
-static void disas_j_type(char *result, size_t buf_size, uint32_t rd, uint32_t rs1, uint32_t rs2, uint32_t funct3, uint32_t funct7)
-{
-    const char *operation = NULL;
-
-    operation = "jal";
-
-    if (operation)
-    {
-        snprintf(result, buf_size,
-                 "%s %s,%s,%s",
-                 operation,
-                 reg_names[rd],
-                 reg_names[rs1],
-                 reg_names[rs2]);
+                 reg_names[rs2],
+                imm);
     }
 }
 
@@ -323,48 +258,80 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             break;
         case 0x13: //I-type ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
+
             break;
 
         case 0x03: // loads
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
-
+            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
     
         case 0x23: // Stores-type
             decode_s(instruction, &f);
-            disas_s_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            disas_s_type(result, buf_size, f.rs1, f.rs2, f.funct3, f.imm);
             break;
 
         case 0x63: //branches ALU
             decode_b(instruction, &f);
-            disas_b_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            disas_b_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
 
         case 0x37: //lui ALU
             decode_u(instruction, &f);
-            disas_u_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            const char *operation = NULL;
+            operation = "lui";
+            if (operation)
+            {
+                snprintf(result, buf_size,
+                        "%s %s,%d",
+                        operation,
+                        reg_names[f.rd],
+                        f.imm);
+            }
+            
             break;
 
         case 0x17: //auipc ALU
             decode_u(instruction, &f);
-            disas_u_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            const char *operation = NULL;
+            operation = "auipc";
+
+            if (operation)
+            {
+                snprintf(result, buf_size,
+                        "%s %s,%d",
+                        operation,
+                        reg_names[f.rd],
+                        f.imm);
+            }
             break;
 
         case 0x6F: //jal ALU
             decode_j(instruction, &f);
-            disas_j_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
+            const char *operation = NULL;
+
+            operation = "jal";
+
+            if (operation)
+            {
+                snprintf(result, buf_size,
+                        "%s %s,%d",
+                        operation,
+                        reg_names[f.rd],
+                        f.imm);
+            }
+
             break;
 
         case 0x67: //jalr ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
 
         case 0x73: //ecall ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
+            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
     }   
 
