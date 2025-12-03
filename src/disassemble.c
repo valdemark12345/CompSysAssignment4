@@ -292,7 +292,7 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
     // Overwrite the content in the buffer with the operation name etc.
     switch (f.opcode) {
         case 0x33: { //R-type ALU
-            print("I got into R-Type");
+//            print("I got into R-Type");
             decode_r(instruction, &f);
             disas_r_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             }

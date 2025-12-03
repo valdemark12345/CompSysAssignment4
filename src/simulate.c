@@ -13,6 +13,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   cpu.pc = start_addr;
   struct Stat stats;
   int instruction;
+  instruction;
   while (cpu.pc != 0)
   {
     instruction = load_word_from_memory();
@@ -89,6 +90,45 @@ void sltu(int dest, int reg1, int reg2)
 {
   cpu.registers[dest] = (cpu.registers[reg1] < cpu.registers[reg2]) ? 1 : 0;
 }
+
+void mulh(int dest, int reg1, int reg2){
+    int64_t prod = (int64_t)cpu.registers[reg1] * (int64_t)cpu.registers[reg2];
+    int32_t result = prod >> 32;
+    cpu.registers[dest] = result;
+}
+
+void mulsu(int dest, int reg1, int reg2){
+    int64_t prod = (int64_t)cpu.registers[reg1] * (uint64_t)cpu.registers[reg2];
+    int32_t result = prod >> 32;
+    cpu.registers[dest] = result;
+}
+
+void mulu(int dest, int reg1, int reg2){
+    uint64_t prod = (uint64_t)cpu.registers[reg1] * (uint64_t)cpu.registers[reg2];
+    uint32_t result = prod >> 32;
+    cpu.registers[dest] = result;
+}
+
+void div(int dest, int reg1, int reg2){
+    int32_t result = (int32_t)cpu.registers[reg1] / (int32_t)cpu.registers[reg2];
+    cpu.registers[dest] = result;
+}
+
+void divu(int dest, int reg1, int reg2){
+    uint32_t result = (uint32_t)cpu.registers[reg1] / (uint32_t)cpu.registers[reg2];
+    cpu.registers[dest] = result;
+}
+
+void rem(int dest, int reg1, int reg2){
+    int32_t result = (int32_t)cpu.registers[reg1] % (int32_t)cpu.registers[reg2];
+    cpu.registers[dest] = result;
+}
+
+void remu(int dest, int reg1, int reg2){
+    uint32_t result = (uint32_t)cpu.registers[reg1] % (uint32_t)cpu.registers[reg2];
+    cpu.registers[dest] = result;
+}
+
 
 // I-types
 
@@ -176,6 +216,14 @@ void sltui(int dest, int reg1, int imm)
   {
     cpu.registers[dest] = (cpu.registers[reg1] < (uint32_t)imm) ? 1 : 0;
   }
+}
+
+void jalr(int dest, int reg1, int imm){
+  if (check_immediate(imm))
+    {
+      cpu.registers[dest] = cpu.pc + 4;
+      cpu.pc = cpu.registers[reg1] + imm;
+    }
 }
 
 // Loading instructions. All of them are cast to a type before being properly stored as uint32_t
