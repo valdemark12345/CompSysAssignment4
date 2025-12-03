@@ -323,7 +323,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         reg_names[f.rd],
                         f.imm);
             }
-            
             break;
 
         case 0x17: //auipc ALU
@@ -356,19 +355,41 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
                         reg_names[f.rd],
                         f.imm);
             }
-
             break;
 
         case 0x67: //jalr ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
+            const char *operation = NULL;
+
+            operation = "jalr";
+
+            if (operation)
+            {
+                snprintf(result, buf_size,
+                        "%s %s, %s, %d",
+                        operation,
+                        reg_names[f.rd],
+                        reg_names[f.rs1],
+                        f.imm);
+            }
             break;
 
         case 0x73: //ecall ALU
             decode_i(instruction, &f);
-            disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
+            const char *operation = NULL;
+
+            operation = "jalr";
+
+            if (operation)
+            {
+                snprintf(result, buf_size,
+                        "%s %s, %s, %d",
+                        operation,
+                        reg_names[f.rd],
+                        reg_names[f.rs1],
+                        f.imm);
+            }        
             break;
     }   
-
 }
 
