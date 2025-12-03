@@ -4,7 +4,7 @@
 struct memory;
 
 // opret/nedlæg lager
-struct memory *memory_create();
+struct memory *memory_create(void);
 void memory_delete(struct memory *);
 
 // skriv word/halfword/byte til lager

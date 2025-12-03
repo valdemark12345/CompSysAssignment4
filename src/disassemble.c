@@ -278,19 +278,23 @@ static void disas_load_type(char *result, size_t buf_size, uint32_t rd, uint32_t
 
 
 
-void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
+void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size){
     
     rv_fields_t f = {0};
     f.opcode = instruction & 0x7F;
+    const char *operation = NULL;
 
     // Overwrite the content in the buffer with the operation name etc.
     switch (f.opcode) {
         case 0x33: { //R-type ALU
+            print("I got into R-Type");
             decode_r(instruction, &f);
             disas_r_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             }
             break;
+
         case 0x13: //I-type ALU
+            print("I got into I-Type");
             decode_i(instruction, &f);
             disas_i_type(result, buf_size,f.rd, f.rs1, f.funct3, f.imm);
             break;
@@ -298,7 +302,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
         case 0x03: // loads
             decode_i(instruction, &f);
             disas_load_type(result, buf_size, f.rd, f.rs1, f.funct3, f.imm);
-
             break;
     
         case 0x23: // Stores-type
@@ -313,7 +316,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
 
         case 0x37: //lui ALU
             decode_u(instruction, &f);
-            const char *operation = NULL;
             operation = "lui";
             if (operation)
             {
@@ -327,7 +329,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
 
         case 0x17: //auipc ALU
             decode_u(instruction, &f);
-            const char *operation = NULL;
             operation = "auipc";
 
             if (operation)
@@ -343,7 +344,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
 
         case 0x6F: //jal ALU
             decode_j(instruction, &f);
-            const char *operation = NULL;
 
             operation = "jal";
 
@@ -359,7 +359,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
 
         case 0x67: //jalr ALU
             decode_i(instruction, &f);
-            const char *operation = NULL;
 
             operation = "jalr";
 
@@ -376,7 +375,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
 
         case 0x73: //ecall ALU
             decode_i(instruction, &f);
-            const char *operation = NULL;
 
             operation = "jalr";
 

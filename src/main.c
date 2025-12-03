@@ -54,13 +54,13 @@ int pass_args_to_program(struct memory* mem, int argc, char* argv[]) {
 }
 
 // Helper function, prints disassembly
-void disassemble_to_stdout(struct memory* mem, struct program_info* prog_info, struct symbols* symbols) 
+void disassemble_to_stdout(struct memory* mem, struct program_info* prog_info) 
 {
   const int buf_size = 100;
   char disassembly[buf_size];
   for (unsigned int addr = prog_info->text_start; addr < prog_info->text_end; addr += 4) {
     unsigned int instruction = memory_rd_w(mem, addr);
-    disassemble(addr, instruction, disassembly, buf_size, symbols);
+    disassemble(addr, instruction, disassembly, buf_size);
     printf("%8x : %08X       %s\n", addr, instruction, disassembly);
   }
 }
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     }
     if (argc == 3 && !strcmp(argv[2], "-d")) {
       // disassemble text segment to stdout
-      disassemble_to_stdout(mem, &prog_info, symbols);
+      disassemble_to_stdout(mem, &prog_info);
       exit(0);
     }
     int start_addr = prog_info.start;
