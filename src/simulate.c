@@ -338,6 +338,48 @@ void auipc(int dest, int upper_immediate)
   }
 }
 
+//
+
+void beq(int reg1, int reg2, int imm){
+    if (reg1 == reg2){
+        cpu.pc += imm;
+    }
+}
+
+void bne(int reg1, int reg2, int imm){
+    if (reg1 != reg2){
+        cpu.pc += imm;
+    }
+}
+
+void blt(int reg1, int reg2, int imm){
+    int32_t val1 = (int32_t)cpu.registers[reg1];
+    int32_t val2 = (int32_t)cpu.registers[reg2];
+    if (val1 < val2){
+        cpu.pc += imm;
+    }
+}
+
+void bge(int reg1, int reg2, int imm){
+    int32_t val1 = (int32_t)cpu.registers[reg1];
+    int32_t val2 = (int32_t)cpu.registers[reg2];
+    if (val1 >= val2){
+        cpu.pc += imm;
+    }
+}
+
+void bltu(int reg1, int reg2, int imm){
+    if (reg1 < reg2){
+        cpu.pc += imm;
+    }
+}
+
+void bgeu(int reg1, int reg2, int imm){
+    if (reg1 >= reg2){
+        cpu.pc += imm;
+    }
+}
+
 void jal(int dest, int imm){
     cpu.registers[dest] = cpu.pc + 4;
     cpu.pc += imm;
