@@ -6,7 +6,12 @@
 #include <stdio.h>
 
 // Simuler RISC-V program i givet lager og fra given start adresse
-struct Stat { long int insns; };
+struct Stat { long int insns; 
+              long int wrong_nt;
+              long int wrong_btfnt;
+              long int wrong_gshare;
+              long int wrong_bimodal;
+              };
 
 // NOTE: Use of symbols provide for nicer disassembly, but is not required for A4.
 // Feel free to remove this parameter or pass in a NULL pointer and ignore it.

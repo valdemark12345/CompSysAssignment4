@@ -18,7 +18,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   {
     instruction = load_word_from_memory();
     // Decode instruction and do it
-    //  Depending on what type of instruction, do something different with PC.
+    // Depending on what type of instruction, do something different with PC.
     stats.insns += 1;
     cpu.pc += 4; // Increment program counter
   }
@@ -33,11 +33,6 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
 void add(int dest, int reg1, int reg2)
 {
   cpu.registers[dest] = cpu.registers[reg1] + cpu.registers[reg2];
-}
-
-void mul(int dest, int reg1, int reg2)
-{
-  cpu.registers[dest] = cpu.registers[reg1] * cpu.registers[reg2];
 }
 
 void sub(int dest, int reg1, int reg2)
@@ -89,6 +84,11 @@ void slt(int dest, int reg1, int reg2)
 void sltu(int dest, int reg1, int reg2)
 {
   cpu.registers[dest] = (cpu.registers[reg1] < cpu.registers[reg2]) ? 1 : 0;
+}
+
+void mul(int dest, int reg1, int reg2)
+{
+  cpu.registers[dest] = cpu.registers[reg1] * cpu.registers[reg2];
 }
 
 void mulh(int dest, int reg1, int reg2){
@@ -336,6 +336,11 @@ void auipc(int dest, int upper_immediate)
   {
     cpu.registers[dest] = cpu.pc + (upper_immediate << 12);
   }
+}
+
+void jal(int dest, int imm){
+    cpu.registers[dest] = cpu.pc + 4;
+    cpu.pc += imm;
 }
 
 void ecall(void) { cpu.pc = 0; }
