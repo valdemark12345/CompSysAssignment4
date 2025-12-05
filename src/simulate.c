@@ -210,7 +210,7 @@ void slti(int dest, int reg1, int imm)
   }
 }
 
-void sltui(int dest, int reg1, int imm)
+void sltiu(int dest, int reg1, int imm)
 {
   if (check_immediate(imm))
   {
@@ -419,6 +419,43 @@ execute_r_type(rv_fields_t instruction){
       case 0x6 : {rem(instruction.rd, instruction.rs1, instruction.rs2); return;}
       case 0x7 : {remu(instruction.rd, instruction.rs1, instruction.rs2); return;}
       default : return;
+    }
+  }
+  return;
+}
+
+execute_i_type(rv_fields_t instruction){
+  if (instruction.opcode == 0x13){
+    switch (instruction.funct3)
+    {
+    case 0x0: {addi(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x1: {slli(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x2: {slti(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x3: {sltiu(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x4: {xori(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x5: {srli(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x6: {ori(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x7: {andi(instruction.rd, instruction.rs1, instruction.imm); return;}
+    default: return;
+    }
+  }
+  else if (instruction.opcode == 0x3){
+    switch (instruction.funct3){
+    case 0x0: {lb(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x1: {lh(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x2: {lw(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x4: {lbu(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x5: {lhu(instruction.rd, instruction.rs1, instruction.imm); return;}
+    }
+  }
+  else if (instruction.opcode == 0x67){
+    switch (instruction.funct3){
+    case 0x0: {jalr(instruction.rd, instruction.rs1, instruction.imm); return;}
+    }
+  }
+  else if (instruction.opcode == 0x73){
+    switch (instruction.funct3){
+    case 0x0: {ecall(); return;}
     }
   }
 }
