@@ -390,15 +390,15 @@ void ecall(void) { cpu.pc = 0; }
 execute_r_type(rv_fields_t instruction){
   if (instruction.funct7 == 0x00){
     switch (instruction.funct3){
-      case 0x0 : {add(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x1 : {sll(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x2 : {slt(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x3 : {sltu(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x4 : {xor(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x5 : {srl(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x6 : {or(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      case 0x7 : {and(instruction.rd, instruction.rs1, instruction.rs2); break;}
-      default : break;
+      case 0x0 : {add(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x1 : {sll(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x2 : {slt(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x3 : {sltu(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x4 : {xor(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x5 : {srl(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x6 : {or(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x7 : {and(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      default : return;
     }
   }
   else if (instruction.funct7 == 0x20){
