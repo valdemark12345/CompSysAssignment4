@@ -403,12 +403,20 @@ execute_r_type(rv_fields_t instruction){
   }
   else if (instruction.funct7 == 0x20){
     switch (instruction.funct3){
-      
+      case 0x0 : {sub(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x5 : {sra(instruction.rd, instruction.rs1, instruction.rs2); return;}
     }
   }
   else if (instruction.funct7 == 0x01){
     switch (instruction.funct3){
-      
+      case 0x0 : {mul(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x1 : {mulh(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x2 : {mulsu(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x3 : {mulu(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x4 : {div(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x5 : {divu(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x6 : {rem(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x7 : {remu(instruction.rd, instruction.rs1, instruction.rs2); return;}
     }
   }
 }
