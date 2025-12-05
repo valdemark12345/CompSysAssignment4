@@ -405,6 +405,7 @@ execute_r_type(rv_fields_t instruction){
     switch (instruction.funct3){
       case 0x0 : {sub(instruction.rd, instruction.rs1, instruction.rs2); return;}
       case 0x5 : {sra(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      default : return;
     }
   }
   else if (instruction.funct7 == 0x01){
@@ -417,6 +418,7 @@ execute_r_type(rv_fields_t instruction){
       case 0x5 : {divu(instruction.rd, instruction.rs1, instruction.rs2); return;}
       case 0x6 : {rem(instruction.rd, instruction.rs1, instruction.rs2); return;}
       case 0x7 : {remu(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      default : return;
     }
   }
 }
