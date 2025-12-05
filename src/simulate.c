@@ -341,13 +341,13 @@ void auipc(int dest, int upper_immediate)
 //
 
 void beq(int reg1, int reg2, int imm){
-    if (reg1 == reg2){
+    if (cpu.registers[reg1] == cpu.registers[reg2]){
         cpu.pc += imm;
     }
 }
 
 void bne(int reg1, int reg2, int imm){
-    if (reg1 != reg2){
+    if (cpu.registers[reg1] != cpu.registers[reg2]){
         cpu.pc += imm;
     }
 }
@@ -369,13 +369,13 @@ void bge(int reg1, int reg2, int imm){
 }
 
 void bltu(int reg1, int reg2, int imm){
-    if (reg1 < reg2){
+    if (cpu.registers[reg1] < cpu.registers[reg2]){
         cpu.pc += imm;
     }
 }
 
 void bgeu(int reg1, int reg2, int imm){
-    if (reg1 >= reg2){
+    if (cpu.registers[reg1] >= cpu.registers[reg2]){
         cpu.pc += imm;
     }
 }
