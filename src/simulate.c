@@ -387,7 +387,7 @@ void jal(int dest, int imm){
 
 void ecall(void) { cpu.pc = 0; }
 
-execute_r_type(rv_fields_t instruction){
+void execute_r_type(rv_fields_t instruction){
   if (instruction.funct7 == 0x00){
     switch (instruction.funct3){
       case 0x0 : {add(instruction.rd, instruction.rs1, instruction.rs2); return;}
@@ -424,7 +424,7 @@ execute_r_type(rv_fields_t instruction){
   return;
 }
 
-execute_i_type(rv_fields_t instruction){
+void execute_i_type(rv_fields_t instruction){
   if (instruction.opcode == 0x13){
     switch (instruction.funct3)
     {
