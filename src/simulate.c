@@ -387,3 +387,47 @@ void jal(int dest, int imm){
 
 void ecall(void) { cpu.pc = 0; }
 
+execute_r_type(rv_fields_t instruction){
+  switch (instruction.funct3){
+    case 0x0:
+    {
+      if (instruction.funct7 == 0x00){
+        add(instruction.rd, instruction.rs1, instruction.rs2);
+        break;
+      }
+      else if (instruction.funct7 == 0x20)
+      {
+        sub(instruction.rd, instruction.rs1, instruction.rs2);
+        break;
+      }
+      else if (instruction.funct7 == 0x01){
+        mul(instruction.rd, instruction.rs1, instruction.rs2);
+        break;
+      }
+      break;
+      }
+    case 0x1:  {
+      if (instruction.funct7 == 0x01){
+        mulh(instruction.rd, instruction.rs1, instruction.rs2);
+        break;
+        }
+      break;
+    } 
+    case 0x2:  {
+      if (instruction.funct7 == 0x01){
+        mulsu(instruction.rd, instruction.rs1, instruction.rs2);
+        break;
+        }
+      break;
+    }
+    case 0x3: {}
+    case 0x4: {}
+    case 0x5: {}
+    case 0x6: {}
+    case 0x7: {}
+    default: {
+      break;
+    }
+  }
+}
+
