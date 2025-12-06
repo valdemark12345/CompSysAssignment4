@@ -184,12 +184,12 @@ static void disas_s_type(char *result, size_t buf_size, uint32_t rs1, uint32_t r
 
     if (operation)
     {
-        snprintf(result, buf_size,
-                 "%s %s,%s, %d",
-                 operation,
-                 reg_names[rs1],
-                 reg_names[rs2],
-                imm);
+    snprintf(result, buf_size,
+            "%s %s, %d(%s)",
+            operation,
+            reg_names[rs2],
+            imm,
+            reg_names[rs1]);
     }
 }
 

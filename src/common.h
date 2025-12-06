@@ -82,6 +82,10 @@ static void decode_b(uint32_t inst, rv_fields_t *f)
   buf_imm |= (imm10_5 << 5);
   buf_imm |= (imm4_1 << 1);
   f->imm = buf_imm;
+
+  if (buf_imm & (1 << 12)) {
+      buf_imm |= 0xFFFFE000;
+  }  
 }
 
 static void decode_u(uint32_t inst, rv_fields_t *f)
