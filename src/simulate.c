@@ -11,10 +11,11 @@ int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
 struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
 {
   cpu.pc = start_addr;
+  cpu.cpu_running = 1;
   struct Stat stats;
   int instruction;
   instruction;
-  while (cpu.pc != 0)
+  while (cpu.cpu_running != 0)
   {
     instruction = load_word_from_memory();
     get_instruction_type(instruction);
@@ -352,37 +353,62 @@ int beq(int reg1, int reg2, int imm){
     }
 }
 
-void bne(int reg1, int reg2, int imm){
+int bne(int reg1, int reg2, int imm){
     if (cpu.registers[reg1] != cpu.registers[reg2]){
         cpu.pc += imm;
+        return 1;
+    }
+    else {
+      cpu.pc += 4;
+      return 0;
     }
 }
 
-void blt(int reg1, int reg2, int imm){
+int blt(int reg1, int reg2, int imm){
     int32_t val1 = (int32_t)cpu.registers[reg1];
     int32_t val2 = (int32_t)cpu.registers[reg2];
     if (val1 < val2){
         cpu.pc += imm;
+        return 1;
+    }
+    else {
+      cpu.pc += 4;
+      return 0;
     }
 }
 
-void bge(int reg1, int reg2, int imm){
+int bge(int reg1, int reg2, int imm){
     int32_t val1 = (int32_t)cpu.registers[reg1];
     int32_t val2 = (int32_t)cpu.registers[reg2];
     if (val1 >= val2){
         cpu.pc += imm;
+        return 1;
+    }
+    else {
+      cpu.pc += 4;
+      return 0;
     }
 }
 
-void bltu(int reg1, int reg2, int imm){
+int bltu(int reg1, int reg2, int imm){
     if (cpu.registers[reg1] < cpu.registers[reg2]){
         cpu.pc += imm;
+        return 1;
+    }
+    else {
+      cpu.pc += 4;
+      return 0;
     }
 }
 
-void bgeu(int reg1, int reg2, int imm){
+int bgeu(int reg1, int reg2, int imm){
     if (cpu.registers[reg1] >= cpu.registers[reg2]){
         cpu.pc += imm;
+        return 1;
+    }
+    else {
+      cpu.pc += 4;
+      return 0;
     }
 }
 
@@ -391,17 +417,17 @@ void jal(int dest, int imm){
     cpu.pc += imm;
 }
 
-void ecall(int dest, int reg, int imm) {
+void ecall(void) {
   if (cpu.registers[17] == 1){
     cpu.registers[10] = getchar(); return;
   }
   else if (cpu.registers[17] == 2){ // Set A0 to getchar(c)
-    cpu.registers[dest] = putchar(cpu.registers[10]); return;
+    putchar(cpu.registers[10]); return;
   }
   else if (cpu.registers[17] == 3 || cpu.registers[17] == 93){ //Stop sim
-    cpu.pc = 0; return;
+    cpu.cpu_running = 0; return;
   }
-  else cpu.pc = 0; return;
+  else {cpu.cpu_running = 0; return;}
  }
 
 void get_instruction_type(int inst){
@@ -497,7 +523,16 @@ void execute_r_type(rv_fields_t instruction){
 }
 
 int execute_b_type(rv_fields_t instruction){
-  int flag;
+  int flag = 0;
+  switch (instruction.funct3){
+    case 0x0: {flag = beq(instruction.rs1, instruction.rs2, instruction.imm); return flag;}
+    case 0x1: {flag = bne(instruction.rs1, instruction.rs2, instruction.imm); return flag;}
+    case 0x4: {flag = blt(instruction.rs1, instruction.rs2, instruction.imm); return flag;}
+    case 0x5: {flag = bge(instruction.rs1, instruction.rs2, instruction.imm); return flag;}
+    case 0x6: {flag = bltu(instruction.rs1, instruction.rs2, instruction.imm); return flag;}
+    case 0x7: {flag = bgeu(instruction.rs1, instruction.rs2, instruction.imm); return flag;}
+  }
+  return flag;
 }
 
 void execute_i_type(rv_fields_t instruction){
@@ -532,7 +567,7 @@ void execute_i_type(rv_fields_t instruction){
   }
   else if (instruction.opcode == 0x73){
     switch (instruction.funct3){
-    case 0x0: {ecall(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x0: {ecall(); return;}
     }
   }
 }

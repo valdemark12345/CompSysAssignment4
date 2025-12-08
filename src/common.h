@@ -15,6 +15,7 @@ struct CPU
   uint32_t registers[32];
   struct memory *mem;
   uint32_t pc;
+  int cpu_running;
 };
 
 static struct CPU init_cpu(void){
