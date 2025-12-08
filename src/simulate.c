@@ -435,7 +435,6 @@ void get_instruction_type(int inst){
   instruction_fields.opcode = inst & 0x7F;
   switch (instruction_fields.opcode) {
         case 0x33: { //R-type ALU
-//            print("I got into R-Type");
             decode_r(inst, &instruction_fields);
             execute_r_type(instruction_fields);
             }
@@ -447,38 +446,44 @@ void get_instruction_type(int inst){
             }
         case 0x03: { // loads
             decode_i(inst, &instruction_fields);
+            //TODO
             }
             break;
     
         case 0x23: { // Stores-type
             decode_s(inst, &instruction_fields);
+            //TODO
             break;
             }
         case 0x63: { //branches ALU
             decode_b(inst, &instruction_fields);
+            //TODO
             break;
         }
         case 0x37: { //lui ALU
             decode_u(inst, &instruction_fields);
+            //TODO
             break;
             }
         case 0x17: { //auipc ALU
             decode_u(inst, &instruction_fields);
+            //TODO
             break;
             }
 
         case 0x6F: { //jal ALU
             decode_j(inst, &instruction_fields);
+            //TODO
             break;
             }
         case 0x67: { //jalr ALU
             decode_i(inst, &instruction_fields);
-
+            //TODO
             }
             break;
         case 0x73: { //ecall ALU
             decode_i(inst, &instruction_fields);
- 
+            //TODO
             break;
             }
     }   
