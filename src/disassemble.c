@@ -380,7 +380,7 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
         case 0x73: { //ecall ALU
             decode_i(instruction, &f);
 
-            operation = "jalr";
+            operation = "ecall";
 
             if (operation)
             {

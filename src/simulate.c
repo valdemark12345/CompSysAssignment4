@@ -17,6 +17,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   while (cpu.pc != 0)
   {
     instruction = load_word_from_memory();
+    get_instruction_type(instruction);
     // Decode instruction and do it
     // Depending on what type of instruction, do something different with PC.
     stats.insns += 1;
@@ -387,6 +388,61 @@ void jal(int dest, int imm){
 
 void ecall(void) { cpu.pc = 0; }
 
+void get_instruction_type(int inst){
+  rv_fields_t instruction_fields = {0};
+  instruction_fields.opcode = inst & 0x7F;
+  switch (instruction_fields.opcode) {
+        case 0x33: { //R-type ALU
+//            print("I got into R-Type");
+            decode_r(inst, &instruction_fields);
+            execute_r_type(instruction_fields);
+            }
+            break;
+        case 0x13: {//I-type ALU
+            decode_i(inst, &instruction_fields);
+            execute_i_type(instruction_fields);
+            break;
+            }
+        case 0x03: { // loads
+            decode_i(inst, &instruction_fields);
+            }
+            break;
+    
+        case 0x23: { // Stores-type
+            decode_s(inst, &instruction_fields);
+            break;
+            }
+        case 0x63: { //branches ALU
+            decode_b(inst, &instruction_fields);
+            break;
+        }
+        case 0x37: { //lui ALU
+            decode_u(inst, &instruction_fields);
+            break;
+            }
+        case 0x17: { //auipc ALU
+            decode_u(inst, &instruction_fields);
+            break;
+            }
+
+        case 0x6F: { //jal ALU
+            decode_j(inst, &instruction_fields);
+            break;
+            }
+        case 0x67: { //jalr ALU
+            decode_i(inst, &instruction_fields);
+
+            }
+            break;
+        case 0x73: { //ecall ALU
+            decode_i(inst, &instruction_fields);
+ 
+            break;
+            }
+    }   
+}
+
+
 void execute_r_type(rv_fields_t instruction){
   if (instruction.funct7 == 0x00){
     switch (instruction.funct3){
@@ -423,6 +479,7 @@ void execute_r_type(rv_fields_t instruction){
   }
   return;
 }
+
 
 void execute_i_type(rv_fields_t instruction){
   if (instruction.opcode == 0x13){
