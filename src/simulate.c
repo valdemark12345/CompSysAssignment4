@@ -18,11 +18,10 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   while (cpu.cpu_running != 0)
   {
     instruction = load_word_from_memory();
-    get_instruction_type(instruction);
+    get_instruction_type(instruction, &stats);
     // Decode instruction and do it
     // Depending on what type of instruction, do something different with PC.
     stats.insns += 1;
-    cpu.pc += 4; // Increment program counter
   }
   // Start program by loading instructions from PC
   // Write down each instruction in log file
@@ -430,22 +429,26 @@ void ecall(void) {
   else {cpu.cpu_running = 0; return;}
  }
 
-void get_instruction_type(int inst){
+void get_instruction_type(int inst, struct Stat *stat){
   rv_fields_t instruction_fields = {0};
   instruction_fields.opcode = inst & 0x7F;
+  int flag;
   switch (instruction_fields.opcode) {
         case 0x33: { //R-type ALU
             decode_r(inst, &instruction_fields);
             execute_r_type(instruction_fields);
+            cpu.pc += 4;
             }
             break;
         case 0x13: {//I-type ALU
             decode_i(inst, &instruction_fields);
             execute_i_type(instruction_fields);
+            cpu.pc += 4;
             break;
             }
         case 0x03: { // loads
             decode_i(inst, &instruction_fields);
+            execute_i_type(instruction_fields);
             //TODO
             }
             break;
@@ -457,6 +460,10 @@ void get_instruction_type(int inst){
             }
         case 0x63: { //branches ALU
             decode_b(inst, &instruction_fields);
+            flag = execute_b_type(instruction_fields);
+            if (flag){ // If jump is taken that's a wrong guess
+              stat->wrong_nt++;
+            }
             //TODO
             break;
         }
@@ -478,6 +485,8 @@ void get_instruction_type(int inst){
             }
         case 0x67: { //jalr ALU
             decode_i(inst, &instruction_fields);
+            execute_i_type(instruction_fields);
+            flag = 1;
             //TODO
             }
             break;
