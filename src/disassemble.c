@@ -283,7 +283,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
     (void)symbols;
     if (buf_size == 0) return;
 
-    
     rv_fields_t f = {0};
     f.opcode = instruction & 0x7F;
     const char *operation = NULL;
@@ -292,7 +291,6 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
     // Overwrite the content in the buffer with the operation name etc.
     switch (f.opcode) {
         case 0x33: { //R-type ALU
-//            print("I got into R-Type");
             decode_r(instruction, &f);
             disas_r_type(result, buf_size,f.rd, f.rs1, f.rs2, f.funct3, f.funct7);
             }
@@ -378,19 +376,7 @@ void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_s
             break;
             }
         case 0x73: { //ecall ALU
-            decode_i(instruction, &f);
-
-            operation = "ecall";
-
-            if (operation)
-            {
-                snprintf(result, buf_size,
-                        "%s %s, %s, %d",
-                        operation,
-                        reg_names[f.rd],
-                        reg_names[f.rs1],
-                        f.imm);
-            }        
+            snprintf(result, buf_size, "ecall");    
             break;
             }
     }   
