@@ -452,7 +452,7 @@ void get_instruction_type(int inst){
     
         case 0x23: { // Stores-type
             decode_s(inst, &instruction_fields);
-            //TODO
+            execute_s_type(instruction_fields);
             break;
             }
         case 0x63: { //branches ALU
@@ -488,6 +488,16 @@ void get_instruction_type(int inst){
             }
     }   
 }
+
+void execute_s_type(rv_fields_t instruction) {
+    switch (instruction.funct3) {
+      case 0x0 : {sb(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x1 : {sh(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x2 : {sw(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      default : return;
+    }
+}
+
 
 
 void execute_r_type(rv_fields_t instruction){
