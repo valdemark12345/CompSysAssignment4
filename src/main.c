@@ -60,7 +60,7 @@ void disassemble_to_stdout(struct memory* mem, struct program_info* prog_info)
   char disassembly[buf_size];
   for (unsigned int addr = prog_info->text_start; addr < prog_info->text_end; addr += 4) {
     unsigned int instruction = memory_rd_w(mem, addr);
-    disassemble(addr, instruction, disassembly, buf_size, NULL);
+    disassemble(addr, instruction, disassembly, buf_size);
     printf("%8x : %08X       %s\n", addr, instruction, disassembly);
   }
 }

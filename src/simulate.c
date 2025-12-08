@@ -341,9 +341,14 @@ void auipc(int dest, int upper_immediate)
 
 //
 
-void beq(int reg1, int reg2, int imm){
+int beq(int reg1, int reg2, int imm){
     if (cpu.registers[reg1] == cpu.registers[reg2]){
         cpu.pc += imm;
+        return 1;
+    }
+    else {
+    cpu.pc += 4;
+    return 0;
     }
 }
 
@@ -386,7 +391,18 @@ void jal(int dest, int imm){
     cpu.pc += imm;
 }
 
-void ecall(void) { cpu.pc = 0; }
+void ecall(int dest, int reg, int imm) {
+  if (cpu.registers[17] == 1){
+    cpu.registers[10] = getchar(); return;
+  }
+  else if (cpu.registers[17] == 2){ // Set A0 to getchar(c)
+    cpu.registers[dest] = putchar(cpu.registers[10]); return;
+  }
+  else if (cpu.registers[17] == 3 || cpu.registers[17] == 93){ //Stop sim
+    cpu.pc = 0; return;
+  }
+  else cpu.pc = 0; return;
+ }
 
 void get_instruction_type(int inst){
   rv_fields_t instruction_fields = {0};
@@ -480,8 +496,12 @@ void execute_r_type(rv_fields_t instruction){
   return;
 }
 
+int execute_b_type(rv_fields_t instruction){
+  int flag;
+}
 
 void execute_i_type(rv_fields_t instruction){
+  int flag;
   if (instruction.opcode == 0x13){
     switch (instruction.funct3)
     {
@@ -507,12 +527,12 @@ void execute_i_type(rv_fields_t instruction){
   }
   else if (instruction.opcode == 0x67){
     switch (instruction.funct3){
-    case 0x0: {jalr(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x0: {jalr(instruction.rd, instruction.rs1, instruction.imm); flag = 1; return;}
     }
   }
   else if (instruction.opcode == 0x73){
     switch (instruction.funct3){
-    case 0x0: {ecall(); return;}
+    case 0x0: {ecall(instruction.rd, instruction.rs1, instruction.imm); return;}
     }
   }
 }
