@@ -582,6 +582,7 @@ void get_instruction_type(int inst, struct Stat *stat){
             decode_i(inst, &instruction_fields);
             execute_i_type(instruction_fields);
             flag = 1;
+            break;
             //TODO
             }
             break;
@@ -591,7 +592,7 @@ void get_instruction_type(int inst, struct Stat *stat){
             cpu.pc += 4;
             break;
             }
-    }   
+    }
 }
 
 struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file)
@@ -604,6 +605,11 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file)
   int instruction;
   while (cpu.cpu_running)
   {
+    //Write address first for debug purposes
+    char address[9];
+    snprintf(address, sizeof(address), "%08x", cpu.pc);
+    fwrite(address, 1, strlen(address), log_file);
+    fwrite("   :    ", 1, 8, log_file);   // space separator
     char result[buffsize];
     instruction = load_word_from_memory();
     disassemble(cpu.pc, instruction, result, buffsize);
