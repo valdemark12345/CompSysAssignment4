@@ -607,6 +607,11 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file)
     char result[buffsize];
     instruction = load_word_from_memory();
     disassemble(cpu.pc, instruction, result, buffsize);
+    size_t len = strlen(result);
+    if (len + 1 < buffsize) {
+    result[len] = '\n';
+    result[len + 1] = '\0';
+    }
     fwrite(result, 1, strlen(result), log_file);
     get_instruction_type(instruction, &stats);
     stats.insns += 1;
