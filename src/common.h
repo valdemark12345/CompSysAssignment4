@@ -45,7 +45,10 @@ static void decode_i(uint32_t inst, rv_fields_t *f)
   f->rd = (inst >> 7) & 0x1F;
   f->funct3 = (inst >> 12) & 0x07;
   f->rs1 = (inst >> 15) & 0x1F;
-  f->imm = (int32_t)(inst) >> 20;
+  int32_t imm12 = ((int32_t)inst >> 20) & 0xFFF;
+  if (imm12 & 0x800)  // check sign bit (bit 11)
+    imm12 |= 0xFFFFF000;  // set upper 20 bits to 1
+  f->imm = imm12;
 }
 
 static void decode_s(uint32_t inst, rv_fields_t *f)

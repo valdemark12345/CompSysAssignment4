@@ -550,6 +550,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file)
   while (cpu.cpu_running)
   {
     //Write address first for debug purposes
+    cpu.registers[0] = 0;
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
     fwrite(address, 1, strlen(address), log_file);
