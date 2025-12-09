@@ -1,33 +1,14 @@
 #include "simulate.h"
 #include "common.h"
 #include "memory.h"
+#include "string.h"
 #include "read_elf.h"
 #include <stdio.h>
 
-struct CPU cpu;
+struct CPU cpu = {0};
+const int buffsize = 100;
 
 int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
-
-struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
-{
-  cpu.pc = start_addr;
-  cpu.cpu_running = 1;
-  struct Stat stats;
-  int instruction;
-  instruction;
-  while (cpu.cpu_running != 0)
-  {
-    instruction = load_word_from_memory();
-    get_instruction_type(instruction, &stats);
-    // Decode instruction and do it
-    // Depending on what type of instruction, do something different with PC.
-    stats.insns += 1;
-  }
-  // Start program by loading instructions from PC
-  // Write down each instruction in log file
-  // Add 1 to stats per instruction
-  return stats;
-}
 
 // R-types
 
@@ -429,74 +410,7 @@ void ecall(void) {
   else {cpu.cpu_running = 0; return;}
  }
 
-void get_instruction_type(int inst, struct Stat *stat){
-  rv_fields_t instruction_fields = {0};
-  instruction_fields.opcode = inst & 0x7F;
-  int flag;
-  switch (instruction_fields.opcode) {
-        case 0x33: { //R-type ALU
-            decode_r(inst, &instruction_fields);
-            execute_r_type(instruction_fields);
-            cpu.pc += 4;
-            }
-            break;
-        case 0x13: {//I-type ALU
-            decode_i(inst, &instruction_fields);
-            execute_i_type(instruction_fields);
-            cpu.pc += 4;
-            break;
-            }
-        case 0x03: { // loads
-            decode_i(inst, &instruction_fields);
-            execute_i_type(instruction_fields);
-            //TODO
-            }
-            break;
-    
-        case 0x23: { // Stores-type
-            decode_s(inst, &instruction_fields);
-            execute_s_type(instruction_fields);
-            break;
-            }
-        case 0x63: { //branches ALU
-            decode_b(inst, &instruction_fields);
-            flag = execute_b_type(instruction_fields);
-            if (flag){ // If jump is taken that's a wrong guess
-              stat->wrong_nt++;
-            }
-            //TODO
-            break;
-        }
-        case 0x37: { //lui ALU
-            decode_u(inst, &instruction_fields);
-            //TODO
-            break;
-            }
-        case 0x17: { //auipc ALU
-            decode_u(inst, &instruction_fields);
-            //TODO
-            break;
-            }
 
-        case 0x6F: { //jal ALU
-            decode_j(inst, &instruction_fields);
-            //TODO
-            break;
-            }
-        case 0x67: { //jalr ALU
-            decode_i(inst, &instruction_fields);
-            execute_i_type(instruction_fields);
-            flag = 1;
-            //TODO
-            }
-            break;
-        case 0x73: { //ecall ALU
-            decode_i(inst, &instruction_fields);
-            //TODO
-            break;
-            }
-    }   
-}
 
 void execute_s_type(rv_fields_t instruction) {
     switch (instruction.funct3) {
@@ -606,4 +520,91 @@ void execute_u_type(rv_fields_t instruction){
   if (instruction.opcode == 0x37){lui(instruction.rd, instruction.imm); return;}
   if (instruction.opcode == 0x17){auipc(instruction.rd, instruction.imm); return;}
   else {return;}
+}
+
+void get_instruction_type(int inst, struct Stat *stat){
+  rv_fields_t instruction_fields = {0};
+  instruction_fields.opcode = inst & 0x7F;
+  int flag;
+  switch (instruction_fields.opcode) {
+        case 0x33: { //R-type ALU
+            decode_r(inst, &instruction_fields);
+            execute_r_type(instruction_fields);
+            cpu.pc += 4;
+            }
+            break;
+        case 0x13: {//I-type ALU
+            decode_i(inst, &instruction_fields);
+            execute_i_type(instruction_fields);
+            cpu.pc += 4;
+            break;
+            }
+        case 0x03: { // loads
+            decode_i(inst, &instruction_fields);
+            execute_i_type(instruction_fields);
+            //TODO
+            }
+            break;
+    
+        case 0x23: { // Stores-type
+            decode_s(inst, &instruction_fields);
+            execute_s_type(instruction_fields);
+            break;
+            }
+        case 0x63: { //branches ALU
+            decode_b(inst, &instruction_fields);
+            flag = execute_b_type(instruction_fields);
+            if (flag){ // If jump is taken that's a wrong guess
+              stat->wrong_nt++;
+            }
+            break;
+        }
+        case 0x37: { //lui ALU
+            decode_u(inst, &instruction_fields);
+            
+            break;
+            }
+        case 0x17: { //auipc ALU
+            decode_u(inst, &instruction_fields);
+            //TODO
+            break;
+            }
+
+        case 0x6F: { //jal ALU
+            decode_j(inst, &instruction_fields);
+            //TODO
+            break;
+            }
+        case 0x67: { //jalr ALU
+            decode_i(inst, &instruction_fields);
+            execute_i_type(instruction_fields);
+            flag = 1;
+            //TODO
+            }
+            break;
+        case 0x73: { //ecall ALU
+            decode_i(inst, &instruction_fields);
+            //TODO
+            break;
+            }
+    }   
+}
+
+struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
+{
+  cpu.registers[0] = 0;
+  cpu.cpu_running = 1;
+  cpu.pc = start_addr;
+  struct Stat stats;
+  int instruction;
+  while (cpu.cpu_running)
+  {
+    char result[buffsize];
+    instruction = load_word_from_memory();
+    disassemble(cpu.pc, instruction, result, buffsize);
+    fwrite(result, 1, strlen(result), log_file);
+    get_instruction_type(instruction, &stats);
+    stats.insns += 1;
+  }
+  return stats;
 }

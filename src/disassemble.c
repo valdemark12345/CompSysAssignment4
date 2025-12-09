@@ -278,9 +278,8 @@ static void disas_load_type(char *result, size_t buf_size, uint32_t rd, uint32_t
 
 
 
-void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size, struct symbols* symbols){
+void disassemble(uint32_t addr, uint32_t instruction, char* result, size_t buf_size){
     (void)addr;
-    (void)symbols;
     if (buf_size == 0) return;
 
     rv_fields_t f = {0};

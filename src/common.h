@@ -20,7 +20,6 @@ struct CPU
 
 static struct CPU init_cpu(void){
     struct CPU cpu;
-    cpu.registers[0] = 0;
     return cpu;
 }
 
