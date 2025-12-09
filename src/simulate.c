@@ -560,7 +560,7 @@ int execute_b_type(rv_fields_t instruction){
 }
 
 void execute_i_type(rv_fields_t instruction){
-  int flag;
+  int flag = 0;
   if (instruction.opcode == 0x13){
     switch (instruction.funct3)
     {
@@ -586,7 +586,7 @@ void execute_i_type(rv_fields_t instruction){
   }
   else if (instruction.opcode == 0x67){
     switch (instruction.funct3){
-    case 0x0: {jalr(instruction.rd, instruction.rs1, instruction.imm); flag = 1; return;}
+    case 0x0: {jalr(instruction.rd, instruction.rs1, instruction.imm); return;}
     }
   }
   else if (instruction.opcode == 0x73){
@@ -594,5 +594,11 @@ void execute_i_type(rv_fields_t instruction){
     case 0x0: {ecall(); return;}
     }
   }
+}
+
+void execute_j_type(rv_fields_t instruction) {
+    if (instruction.opcode == 0x6F){
+    jal(instruction.rd, instruction.imm);  return;
+    }
 }
 
