@@ -414,9 +414,9 @@ void ecall(void) {
 
 void execute_s_type(rv_fields_t instruction) {
     switch (instruction.funct3) {
-      case 0x0 : {sb(instruction.rd, instruction.rs1, instruction.rs2); return;}
-      case 0x1 : {sh(instruction.rd, instruction.rs1, instruction.rs2); return;}
-      case 0x2 : {sw(instruction.rd, instruction.rs1, instruction.rs2); return;}
+      case 0x0 : {sb(instruction.rs1, instruction.rs2, instruction.imm); return;}
+      case 0x1 : {sh(instruction.rs1, instruction.rs2, instruction.imm); return;}
+      case 0x2 : {sw(instruction.rs1, instruction.rs2, instruction.imm); return;}
       default : return;
     }
 }
@@ -474,7 +474,6 @@ int execute_b_type(rv_fields_t instruction){
 }
 
 void execute_i_type(rv_fields_t instruction){
-  int flag = 0;
   if (instruction.opcode == 0x13){
     switch (instruction.funct3)
     {
@@ -542,13 +541,14 @@ void get_instruction_type(int inst, struct Stat *stat){
         case 0x03: { // loads
             decode_i(inst, &instruction_fields);
             execute_i_type(instruction_fields);
-            //TODO
+            cpu.pc += 4;
             }
             break;
     
         case 0x23: { // Stores-type
             decode_s(inst, &instruction_fields);
             execute_s_type(instruction_fields);
+            cpu.pc += 4;
             break;
             }
         case 0x63: { //branches ALU
@@ -561,18 +561,21 @@ void get_instruction_type(int inst, struct Stat *stat){
         }
         case 0x37: { //lui ALU
             decode_u(inst, &instruction_fields);
-            
+            execute_u_type(instruction_fields);
+            cpu.pc += 4;
             break;
             }
         case 0x17: { //auipc ALU
             decode_u(inst, &instruction_fields);
-            //TODO
+            execute_u_type(instruction_fields);
+            cpu.pc += 4;
             break;
             }
 
         case 0x6F: { //jal ALU
             decode_j(inst, &instruction_fields);
-            //TODO
+            execute_j_type(instruction_fields);
+            flag = 1;
             break;
             }
         case 0x67: { //jalr ALU
@@ -584,15 +587,17 @@ void get_instruction_type(int inst, struct Stat *stat){
             break;
         case 0x73: { //ecall ALU
             decode_i(inst, &instruction_fields);
-            //TODO
+            execute_i_type(instruction_fields);
+            cpu.pc += 4;
             break;
             }
     }   
 }
 
-struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols)
+struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file)
 {
   cpu.registers[0] = 0;
+  cpu.mem = mem;
   cpu.cpu_running = 1;
   cpu.pc = start_addr;
   struct Stat stats;

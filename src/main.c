@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     }
     int start_addr = prog_info.start;
     clock_t before = clock();
-    struct Stat stats = simulate(mem, start_addr, log_file, symbols);
+    struct Stat stats = simulate(mem, start_addr, log_file);
     long int num_insns = stats.insns;
     clock_t after = clock();
     int ticks = after - before;

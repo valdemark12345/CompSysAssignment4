@@ -18,11 +18,6 @@ struct CPU
   int cpu_running;
 };
 
-static struct CPU init_cpu(void){
-    struct CPU cpu;
-    return cpu;
-}
-
 typedef struct
 {
   uint32_t opcode;
