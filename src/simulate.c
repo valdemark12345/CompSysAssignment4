@@ -114,210 +114,136 @@ void remu(int dest, int reg1, int reg2){
 
 // I-types
 
-int check_immediate(int immediate)
-{
-  if (immediate > 0xfff)
-  {
-    printf("Immediate was too large! \n");
-    return 0;
-  }
-  else
-    return 1;
-}
+
+
 
 void addi(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = cpu.registers[reg] + imm;
-  }
 }
 
 void xori(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = cpu.registers[reg] ^ imm;
-  }
 }
 
 void ori(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = cpu.registers[reg] | imm;
-  }
 }
 
 void andi(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = cpu.registers[reg] & imm;
-  }
 }
 
 void slli(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = cpu.registers[reg] << imm;
-  }
 }
 
 void srli(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = cpu.registers[reg] >> imm;
-  }
 }
 
 void srai(int dest, int reg, int imm)
 {
-  if (check_immediate(imm))
-  {
-    uint32_t shamt = imm & 0x1F;               // RV32 shift amount is 0–31
-    int32_t val = (int32_t)cpu.registers[reg]; // reinterpret as signed
-    cpu.registers[dest] = (uint32_t)(val >> shamt);
-  }
+  uint32_t shamt = imm & 0x1F;               // RV32 shift amount is 0–31
+  int32_t val = (int32_t)cpu.registers[reg]; // reinterpret as signed
+  cpu.registers[dest] = (uint32_t)(val >> shamt);
 }
 
 void slti(int dest, int reg1, int imm)
 {
-  if (check_immediate(imm))
-  {
     int32_t val = (int32_t)cpu.registers[reg1]; // Cast val to signed integer.
     cpu.registers[dest] = (val < imm) ? 1 : 0;
-  }
 }
 
 void sltiu(int dest, int reg1, int imm)
 {
-  if (check_immediate(imm))
-  {
     cpu.registers[dest] = (cpu.registers[reg1] < (uint32_t)imm) ? 1 : 0;
-  }
 }
 
 void jalr(int dest, int reg1, int imm){
-  if (check_immediate(imm))
-    {
       cpu.registers[dest] = cpu.pc + 4;
       cpu.pc = cpu.registers[reg1] + imm;
-    }
 }
 
 // Loading instructions. All of them are cast to a type before being properly stored as uint32_t
 
 void lb(int dest, int imm, int reg)
 {
-  if (check_immediate(imm))
-  {
     int addr = cpu.registers[reg] + imm;
     int8_t val = memory_rd_b(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
-  }
 }
 
 void lw(int dest, int imm, int reg)
 {
-  if (check_immediate(imm))
-  {
     int addr = cpu.registers[reg] + imm;
     int32_t val = memory_rd_w(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
-}
 
 void lh(int dest, int imm, int reg)
 {
-  if (check_immediate(imm))
-  {
     int addr = cpu.registers[reg] + imm;
     int16_t val = memory_rd_h(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
   }
-}
 
 void lbu(int dest, int imm, int reg)
 {
-  if (check_immediate(imm))
-  {
     int addr = cpu.registers[reg] + imm;
     uint8_t val = memory_rd_b(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
-  }
 }
 
 void lhu(int dest, int imm, int reg)
 {
-  if (check_immediate(imm))
-  {
     int addr = cpu.registers[reg] + imm;
     uint16_t val = memory_rd_b(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
-  }
 }
 
 // S types
 
 void sb(int reg1, int reg2, int imm){
-    if (check_immediate(imm))
-    {
       int addr = cpu.registers[reg1] + imm;
       uint8_t val = (uint8_t)cpu.registers[reg2];
       memory_wr_b(cpu.mem, addr, val);
-  }
 }
 
 void sh(int reg1, int reg2, int imm){
-    if (check_immediate(imm))
-    {
+
       int addr = cpu.registers[reg1] + imm;
       uint16_t val = (uint16_t)cpu.registers[reg2];
       memory_wr_h(cpu.mem, addr, val);
-  }
 }
 
 void sw(int reg1, int reg2, int imm){
-    if (check_immediate(imm))
-    {
+
       int addr = cpu.registers[reg1] + imm;
       uint32_t val = (uint32_t)cpu.registers[reg2];
       memory_wr_w(cpu.mem, addr, val);
   }
-}
+
 
 
 // U types
 
-int check_upper_immediate(int upper_immediate)
-{
-  if (upper_immediate > 0xfffff)
-  {
-    printf("upper_immediate was too large! \n");
-    return 0;
-  }
-  else
-    return 1;
-}
+
 
 void lui(int dest, int upper_immediate)
 {
-  if (check_upper_immediate(upper_immediate))
-  {
     cpu.registers[dest] = upper_immediate;
     cpu.registers[dest] = cpu.registers[dest] << 12;
-  }
 }
 
 void auipc(int dest, int upper_immediate)
 {
-  if (check_upper_immediate(upper_immediate))
-  {
-    cpu.registers[dest] = cpu.pc + (upper_immediate << 12);
-  }
+  cpu.registers[dest] = cpu.pc + (upper_immediate << 12);
 }
 
 //
@@ -394,7 +320,7 @@ int bgeu(int reg1, int reg2, int imm){
 
 void jal(int dest, int imm){
     cpu.registers[dest] = cpu.pc + 4;
-    cpu.pc += imm;
+    cpu.pc += (int32_t)imm;
 }
 
 void ecall(void) {
@@ -490,11 +416,11 @@ void execute_i_type(rv_fields_t instruction){
   }
   else if (instruction.opcode == 0x3){
     switch (instruction.funct3){
-    case 0x0: {lb(instruction.rd, instruction.rs1, instruction.imm); return;}
-    case 0x1: {lh(instruction.rd, instruction.rs1, instruction.imm); return;}
-    case 0x2: {lw(instruction.rd, instruction.rs1, instruction.imm); return;}
-    case 0x4: {lbu(instruction.rd, instruction.rs1, instruction.imm); return;}
-    case 0x5: {lhu(instruction.rd, instruction.rs1, instruction.imm); return;}
+    case 0x0: {lb(instruction.rd, instruction.imm, instruction.rs1); return;}
+    case 0x1: {lh(instruction.rd, instruction.imm, instruction.rs1); return;}
+    case 0x2: {lw(instruction.rd, instruction.imm, instruction.rs1); return;}
+    case 0x4: {lbu(instruction.rd, instruction.imm, instruction.rs1); return;}
+    case 0x5: {lhu(instruction.rd, instruction.imm, instruction.rs1); return;}
     }
   }
   else if (instruction.opcode == 0x67){
@@ -557,6 +483,10 @@ void get_instruction_type(int inst, struct Stat *stat){
             if (flag){ // If jump is taken that's a wrong guess
               stat->wrong_nt++;
             }
+            if (cpu.pc % 4 != 0){
+              printf("Pc was : %d that is not a valid address \n", cpu.pc);
+              fflush(stdout);
+            }
             break;
         }
         case 0x37: { //lui ALU
@@ -576,12 +506,20 @@ void get_instruction_type(int inst, struct Stat *stat){
             decode_j(inst, &instruction_fields);
             execute_j_type(instruction_fields);
             flag = 1;
+            if (cpu.pc % 4 != 0){
+              printf("Pc was : %d that is not a valid address \n", cpu.pc);
+              fflush(stdout);
+            }
             break;
             }
         case 0x67: { //jalr ALU
             decode_i(inst, &instruction_fields);
             execute_i_type(instruction_fields);
             flag = 1;
+            if (cpu.pc % 4 != 0){
+              printf("Pc was : %d that is not a valid address \n", cpu.pc);
+              fflush(stdout);
+            }
             break;
             //TODO
             }

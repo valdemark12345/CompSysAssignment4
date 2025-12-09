@@ -45,7 +45,7 @@ static void decode_i(uint32_t inst, rv_fields_t *f)
   f->rd = (inst >> 7) & 0x1F;
   f->funct3 = (inst >> 12) & 0x07;
   f->rs1 = (inst >> 15) & 0x1F;
-  f->imm = (int32_t)inst >> 20;
+  f->imm = (int32_t)(inst) >> 20;
 }
 
 static void decode_s(uint32_t inst, rv_fields_t *f)
@@ -54,7 +54,9 @@ static void decode_s(uint32_t inst, rv_fields_t *f)
   f->funct3 = (inst >> 12) & 0x07;
   f->rs1 = (inst >> 15) & 0x1F;
   f->rs2 = (inst >> 20) & 0x1F;
-  f->imm = ((inst >> 7) & 0x1F) | (((int32_t)inst >> 25) << 5);
+  int32_t imm = ((inst >> 7) & 0x1F) | (((inst >> 25) & 0x7F) << 5);
+  imm = (imm << 20) >> 20; // sign-extend 12 bits
+  f->imm = imm;
 }
 
 static void decode_b(uint32_t inst, rv_fields_t *f)
@@ -76,11 +78,9 @@ static void decode_b(uint32_t inst, rv_fields_t *f)
   buf_imm |= (imm11 << 11);
   buf_imm |= (imm10_5 << 5);
   buf_imm |= (imm4_1 << 1);
-  f->imm = buf_imm;
 
-  if (buf_imm & (1 << 12)) {
-      buf_imm |= 0xFFFFE000;
-  }  
+  buf_imm = (buf_imm << 19) >> 19;
+  f->imm = buf_imm;  
 }
 
 static void decode_u(uint32_t inst, rv_fields_t *f)
@@ -107,5 +107,6 @@ static void decode_j(uint32_t inst, rv_fields_t *f)
   buf_imm |= (imm19_12 << 12);
   buf_imm |= (imm11 << 11);
   buf_imm |= (imm10_1 << 1);
+  buf_imm = (buf_imm << 11) >> 11;
   f->imm = buf_imm;
 }
