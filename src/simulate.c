@@ -602,3 +602,8 @@ void execute_j_type(rv_fields_t instruction) {
     }
 }
 
+void execute_u_type(rv_fields_t instruction){
+  if (instruction.opcode == 0x37){lui(instruction.rd, instruction.imm); return;}
+  if (instruction.opcode == 0x17){auipc(instruction.rd, instruction.imm); return;}
+  else {return;}
+}
