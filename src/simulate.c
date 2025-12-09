@@ -610,6 +610,7 @@ void get_instruction_type(int inst, struct Stat *stat) {
     cpu.pc += 4;
     break;
   }
+  default: {cpu.pc += 4; break;}
   }
 }
 
