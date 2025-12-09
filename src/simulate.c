@@ -167,7 +167,7 @@ void sltiu(int dest, int reg1, int imm)
 
 void jalr(int dest, int reg1, int imm){
       cpu.registers[dest] = cpu.pc + 4;
-      cpu.pc = cpu.registers[reg1] + imm;
+      cpu.pc = cpu.registers[reg1] + imm & ~1;
 }
 
 // Loading instructions. All of them are cast to a type before being properly stored as uint32_t
@@ -203,7 +203,7 @@ void lbu(int dest, int imm, int reg)
 void lhu(int dest, int imm, int reg)
 {
     int addr = cpu.registers[reg] + imm;
-    uint16_t val = memory_rd_b(cpu.mem, addr);
+    uint16_t val = memory_rd_h(cpu.mem, addr);
     cpu.registers[dest] = (uint32_t)val;
 }
 
@@ -324,16 +324,22 @@ void jal(int dest, int imm){
 }
 
 void ecall(void) {
+  
   if (cpu.registers[17] == 1){
     cpu.registers[10] = getchar(); return;
   }
   else if (cpu.registers[17] == 2){ // Set A0 to getchar(c)
-    putchar(cpu.registers[10]); return;
+    putchar((char)cpu.registers[10]); return;
   }
   else if (cpu.registers[17] == 3 || cpu.registers[17] == 93){ //Stop sim
     cpu.cpu_running = 0; return;
   }
-  else {cpu.cpu_running = 0; return;}
+  else {cpu.cpu_running = 0; 
+    char buf[64];
+    sprintf(buf, "Value of a7: %d\n", cpu.registers[17]);
+    fputs(buf, stdout);
+    fputs("Else statement reached somehow \n \0", stdout);
+    return;}
  }
 
 
