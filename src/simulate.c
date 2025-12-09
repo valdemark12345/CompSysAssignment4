@@ -546,6 +546,11 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file)
   cpu.cpu_running = 1;
   cpu.pc = start_addr;
   struct Stat stats;
+  stats.insns = 0;
+  stats.wrong_nt = 0;
+  stats.wrong_bimodal = 0;
+  stats.wrong_gshare = 0;
+  stats.wrong_btfnt = 0;
   int instruction;
   while (cpu.cpu_running)
   {
