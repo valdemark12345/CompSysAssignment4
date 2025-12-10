@@ -654,7 +654,6 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
     }
     fwrite(result, 1, strlen(result), log_file);
     }
-    get_instruction_type(instruction, &stats);
     flag = 0;
     flag = get_instruction_type(instruction, &stats);
     stats.insns += 1;
