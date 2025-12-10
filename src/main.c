@@ -110,12 +110,12 @@ int main(int argc, char *argv[])
     struct Stat stats = simulate(mem, start_addr, log_file, NULL);
 
     //Status report.
-    printf("Total executed instructions  : %d\n", stats.insns);
-    printf("Total branches executed      : %d\n", stats.branches);
-    printf("Wrong predictions NT         : %d\n", stats.wrong_nt);
-    printf("Wrong predictions BTFNT      : %d\n", stats.wrong_btfnt);
-    printf("Wrong predictions BIMODAL    : %d\n", stats.wrong_bimodal);
-    printf("Wrong predictions GSHARE     : %d\n", stats.wrong_gshare);
+    printf("Total executed instructions  : %ld\n", stats.insns);
+    printf("Total branches executed      : %ld\n", stats.branches);
+    printf("Wrong predictions NT         : %ld\n", stats.wrong_nt);
+    printf("Wrong predictions BTFNT      : %ld\n", stats.wrong_btfnt);
+    printf("Wrong predictions BIMODAL    : %ld\n", stats.wrong_bimodal);
+    printf("Wrong predictions GSHARE     : %ld\n", stats.wrong_gshare);
 
     long int num_insns = stats.insns;
     clock_t after = clock();

@@ -6,7 +6,8 @@
 #include <stdio.h>
 
 struct CPU cpu = {0};
-const int buffsize = 100;
+const int buffsize = 120;
+const int small_buf = 50;
 int last_branch_outcome = 0;
 
 int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
@@ -531,7 +532,7 @@ void execute_u_type(rv_fields_t instruction) {
   }
 }
 
-int get_instruction_type(int inst, struct Stat *stat) {
+int get_instruction_type(int inst, struct Stat *stat, char* str) {
   rv_fields_t instruction_fields = {0};
   instruction_fields.opcode = inst & 0x7F;
   int flag = 0;
@@ -539,23 +540,27 @@ int get_instruction_type(int inst, struct Stat *stat) {
   case 0x33: { // R-type ALU
     decode_r(inst, &instruction_fields);
     execute_r_type(instruction_fields);
+    snprintf(str, small_buf, "   R[%d] <- R[%d] + R[%d]", instruction_fields.rd, instruction_fields.rs1, instruction_fields.rs2);
     cpu.pc += 4;
   } break;
   case 0x13: { // I-type ALU
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
+    snprintf(str, small_buf, "   R[%d] <- R[%d] + %d", instruction_fields.rd, instruction_fields.rs1, instruction_fields.imm);
     cpu.pc += 4;
     break;
   }
   case 0x03: { // loads
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
+    snprintf(str, small_buf, "   R[%d] <- R[%d](0x%03x)", instruction_fields.rd, instruction_fields.rs1, instruction_fields.imm);
     cpu.pc += 4;
   } break;
 
   case 0x23: { // Stores-type
     decode_s(inst, &instruction_fields);
     execute_s_type(instruction_fields);
+    snprintf(str, small_buf, "   Mem[%d + 0x%03d] <- R[%d]", instruction_fields.rs1, instruction_fields.imm, instruction_fields.rs2);
     cpu.pc += 4;
     break;
   }
@@ -578,19 +583,21 @@ int get_instruction_type(int inst, struct Stat *stat) {
     int predicted_gshare = last_branch_outcome; //(gshare=)
     if (predicted_gshare != actual_taken)
         stat->wrong_gshare++;
-
+    snprintf(str, small_buf, ""); // Print nothing
 
     break;
   }
   case 0x37: { // lui ALU
     decode_u(inst, &instruction_fields);
     execute_u_type(instruction_fields);
+    snprintf(str, small_buf, "   R[%d] <- 0x%05x", instruction_fields.rd, instruction_fields.imm);
     cpu.pc += 4;
     break;
   }
   case 0x17: { // auipc ALU
     decode_u(inst, &instruction_fields);
     execute_u_type(instruction_fields);
+    snprintf(str, small_buf, "   R[%d] += PC + 0x%05x", instruction_fields.rd, instruction_fields.imm);
     cpu.pc += 4;
     break;
   }
@@ -603,6 +610,7 @@ int get_instruction_type(int inst, struct Stat *stat) {
       printf("Pc was : %d that is not a valid address \n", cpu.pc);
       fflush(stdout);
     }
+    snprintf(str, small_buf, "   R[%d] <- PC+4; PC += 0x%05x ", instruction_fields.rd, instruction_fields.imm);
     break;
   }
   case 0x67: { // jalr ALU
@@ -613,11 +621,13 @@ int get_instruction_type(int inst, struct Stat *stat) {
       printf("Pc was : %d that is not a valid address \n", cpu.pc);
       fflush(stdout);
     }
+    snprintf(str, small_buf, "   R[%d] <- PC+4; PC += (R[%d] + %d)", instruction_fields.rd, instruction_fields.rs1, instruction_fields.imm);
     break;
-  } break;
+  }
   case 0x73: { // ecall ALU
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
+    snprintf(str, small_buf, "   Ecall(%d)", cpu.registers[17]);
     cpu.pc += 4;
     break;
   }
@@ -645,7 +655,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   while (cpu.cpu_running) {
     if (log_file){
         fprintf(log_file, "%ld", stats.insns);
-        if (flag1 == 1){
+        if (flag1 == 1 | flag1 == 2){
             fwrite((" => "), 1, 4, log_file);
         } else {
             fwrite(("    "), 1, 4, log_file);
@@ -654,7 +664,8 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
 
     flag1 = 0;
     instruction = load_word_from_memory();
-    flag1 = get_instruction_type(instruction, &stats);
+    char str[small_buf];
+    flag1 = get_instruction_type(instruction, &stats, str);
     // Write address first for debug purposes
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
@@ -669,9 +680,15 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
     fwrite("     ", 1, 5, log_file);
     disassemble(cpu.pc, instruction, result, buffsize);
     
-    if (flag1)
-    if (strlen(result) + 6 < buffsize) {  // 6 for "   {T}"
+    if (flag1 == 1){
+      if (strlen(result) + 6 < buffsize) {  // 6 for "   {T}"
         strcat(result, "   {T}");
+      }
+    }
+    else {
+      if (strlen(result) + strlen(str) < buffsize) {
+        strcat(result, str);
+      }
     }
 
     size_t len1 = strlen(result);
