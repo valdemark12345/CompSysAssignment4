@@ -9,6 +9,9 @@ struct CPU cpu = {0};
 const int buffsize = 120;
 const int small_buf = 50;
 int last_branch_outcome = 0;
+unsigned char bimodal[1024];
+unsigned int ghr = 0;
+unsigned char gshare_table[1024];
 
 int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
 
@@ -532,7 +535,7 @@ void execute_u_type(rv_fields_t instruction) {
   }
 }
 
-int get_instruction_type(int inst, struct Stat *stat, char *str) {
+int get_instruction_type(int inst, struct Stat *stat) {
   rv_fields_t instruction_fields = {0};
   instruction_fields.opcode = inst & 0x7F;
   int flag = 0;
@@ -540,31 +543,23 @@ int get_instruction_type(int inst, struct Stat *stat, char *str) {
   case 0x33: { // R-type ALU
     decode_r(inst, &instruction_fields);
     execute_r_type(instruction_fields);
-    snprintf(str, small_buf, "   R[%d] <- R[%d] + R[%d]", instruction_fields.rd,
-             instruction_fields.rs1, instruction_fields.rs2);
     cpu.pc += 4;
   } break;
   case 0x13: { // I-type ALU
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
-    snprintf(str, small_buf, "   R[%d] <- R[%d] + %d", instruction_fields.rd,
-             instruction_fields.rs1, instruction_fields.imm);
     cpu.pc += 4;
     break;
   }
   case 0x03: { // loads
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
-    snprintf(str, small_buf, "   R[%d] <- R[%d](0x%03x)", instruction_fields.rd,
-             instruction_fields.rs1, instruction_fields.imm);
     cpu.pc += 4;
   } break;
 
   case 0x23: { // Stores-type
     decode_s(inst, &instruction_fields);
     execute_s_type(instruction_fields);
-    snprintf(str, small_buf, "   Mem[%d + 0x%03d] <- R[%d]", instruction_fields.rs1,
-             instruction_fields.imm, instruction_fields.rs2);
     cpu.pc += 4;
     break;
   }
@@ -581,28 +576,54 @@ int get_instruction_type(int inst, struct Stat *stat, char *str) {
     if (predicted_btfnt != actual_taken)
       stat->wrong_btfnt++;
 
-    if (actual_taken != 1) //(BIMODAL)
-      stat->wrong_bimodal++;
+    //BIMODAL
+    int index = (cpu.pc >> 2) & (1024 - 1);
 
-    int predicted_gshare = last_branch_outcome; //(gshare=)
-    if (predicted_gshare != actual_taken)
-      stat->wrong_gshare++;
-    snprintf(str, small_buf, ""); // Overwrite string.
+    // prediction from range 0–5
+    int predicted_taken_bimodal = (bimodal[index] >= 3);
+
+
+    if (predicted_taken_bimodal != actual_taken)
+        stat->wrong_bimodal++;
+
+    if (actual_taken == 1) {
+        if (bimodal[index] < 5)
+            bimodal[index]++;
+    } else {
+        if (bimodal[index] > 0)
+            bimodal[index]--;
+    }
+    
+    //GSHARE
+    int index2 = ((cpu.pc >> 2) ^ ghr) & (1024 - 1);
+    int predicted_taken_gshare = (gshare_table[index2] >= 3);
+
+    // count wrong predictions
+    if (predicted_taken_gshare != actual_taken)
+        stat->wrong_gshare++;
+
+    // update predictor
+    if (actual_taken == 1) {
+        if (gshare_table[index2] < 5)
+            gshare_table[index2]++;
+    } else {
+        if (gshare_table[index2] > 0)
+            gshare_table[index2]--;
+    }
+
+    ghr = ((ghr << 1) | actual_taken) & 1023;
 
     break;
   }
   case 0x37: { // lui ALU
     decode_u(inst, &instruction_fields);
     execute_u_type(instruction_fields);
-    snprintf(str, small_buf, "   R[%d] <- 0x%05x", instruction_fields.rd, instruction_fields.imm);
     cpu.pc += 4;
     break;
   }
   case 0x17: { // auipc ALU
     decode_u(inst, &instruction_fields);
     execute_u_type(instruction_fields);
-    snprintf(str, small_buf, "   R[%d] += PC + 0x%05x", instruction_fields.rd,
-             instruction_fields.imm);
     cpu.pc += 4;
     break;
   }
@@ -615,8 +636,6 @@ int get_instruction_type(int inst, struct Stat *stat, char *str) {
       printf("Pc was : %d that is not a valid address \n", cpu.pc);
       fflush(stdout);
     }
-    snprintf(str, small_buf, "   R[%d] <- PC+4; PC += %d ", instruction_fields.rd,
-             instruction_fields.imm);
     break;
   }
   case 0x67: { // jalr ALU
@@ -627,27 +646,21 @@ int get_instruction_type(int inst, struct Stat *stat, char *str) {
       printf("Pc was : %d that is not a valid address \n", cpu.pc);
       fflush(stdout);
     }
-    snprintf(str, small_buf, "   R[%d] <- PC+4; PC += (R[%d] + %d)", instruction_fields.rd,
-             instruction_fields.rs1, instruction_fields.imm);
     break;
-  }
+  } break;
   case 0x73: { // ecall ALU
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
-    snprintf(str, small_buf, "   Ecall(%d)", cpu.registers[17]);
     cpu.pc += 4;
     break;
   }
-  default: {
-    cpu.pc += 4;
-    break;
-  }
+  default: {cpu.pc += 4; break;}
   }
   return flag;
 }
 
-struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols *symbols) {
-  (void)symbols; // Avoid warning
+struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols* symbols) {
+  (void)symbols; //Avoid warning
   cpu.registers[0] = 0;
   cpu.mem = mem;
   cpu.cpu_running = 1;
@@ -662,50 +675,52 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   int instruction;
   int flag1 = 0;
 
+  //Let the prediction scale be range 0-5. Inizialising them starting in the middle
+  for (int i = 0; i < 1024; i++) {
+      bimodal[i] = 2;
+      gshare_table[i] = 2;
+  }
+  ghr = 0;
+
   while (cpu.cpu_running) {
-    if (log_file) {
-      fprintf(log_file, "%ld", stats.insns);
-      if (flag1 == 1 | flag1 == 2) {
-        fwrite((" => "), 1, 4, log_file);
-      } else {
-        fwrite(("    "), 1, 4, log_file);
-      }
+    if (log_file){
+        fprintf(log_file, "%ld", stats.insns);
+        if (flag1 == 1){
+            fwrite((" => "), 1, 4, log_file);
+        } else {
+            fwrite(("    "), 1, 4, log_file);
+        }
     }
 
     flag1 = 0;
     instruction = load_word_from_memory();
-    char str[small_buf];
-    flag1 = get_instruction_type(instruction, &stats, str);
+    flag1 = get_instruction_type(instruction, &stats);
     // Write address first for debug purposes
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
     char result[buffsize];
 
-    if (log_file) {
-      fwrite(address, 1, strlen(address), log_file);
-      fwrite("  :  ", 1, 5, log_file); // space separator
-      uint32_t u = (uint32_t)instruction;
-      fprintf(log_file, "0x%08X", u);
+    if (log_file){
+    fwrite(address, 1, strlen(address), log_file);
+    fwrite("  :  ", 1, 5, log_file); // space separator
+    uint32_t u = (uint32_t)instruction;
+    fprintf(log_file, "0x%08X", u);
+   
+    fwrite("     ", 1, 5, log_file);
+    disassemble(cpu.pc, instruction, result, buffsize);
+    
+    if (flag1)
+    if (strlen(result) + 6 < buffsize) {  // 6 for "   {T}"
+        strcat(result, "   {T}");
+    }
 
-      fwrite("     ", 1, 5, log_file);
-      disassemble(cpu.pc, instruction, result, buffsize);
-
-      if (flag1 == 1) {
-        if (strlen(result) + 6 < buffsize) { // 6 for "   {T}"
-          strcat(result, "   {T}");
-        }
-      } else {
-        if (strlen(result) + strlen(str) < buffsize) {
-          strcat(result, str);
-        }
-      }
-
-      size_t len1 = strlen(result);
-      if (len1 + 1 < buffsize) {
-        result[len1] = '\n';
-        result[len1 + 1] = '\0';
-      }
-      fwrite(result, 1, strlen(result), log_file);
+    size_t len1 = strlen(result);
+    if (len1 + 1 < buffsize) {
+      result[len1] = '\n';
+      result[len1 + 1] = '\0';
+    }
+    fwrite(result, 1, strlen(result), log_file);    
+    
     }
     stats.insns += 1;
   }
