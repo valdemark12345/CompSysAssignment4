@@ -7,6 +7,8 @@
 #include <string.h>
 #include <time.h>
 
+#define BUFFSIZE 100
+
 void terminate(const char *error) {
   printf("%s\n", error);
   printf("RISC-V Simulator v0.11.0: Usage:\n");
@@ -57,11 +59,10 @@ int pass_args_to_program(struct memory *mem, int argc, char *argv[]) {
 
 // Helper function, prints disassembly
 void disassemble_to_stdout(struct memory *mem, struct program_info *prog_info) {
-  const int buf_size = 100;
-  char disassembly[buf_size];
+  char disassembly[BUFFSIZE];
   for (unsigned int addr = prog_info->text_start; addr < prog_info->text_end; addr += 4) {
     unsigned int instruction = memory_rd_w(mem, addr);
-    disassemble(addr, instruction, disassembly, buf_size);
+    disassemble(addr, instruction, disassembly, BUFFSIZE);
     printf("%8x : %08X       %s\n", addr, instruction, disassembly);
   }
 }

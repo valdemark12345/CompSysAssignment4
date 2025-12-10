@@ -5,9 +5,11 @@
 #include "string.h"
 #include <stdio.h>
 
+#define BUFFSIZE 120
+#define SMALLBUFFSIZE 50
+
 struct CPU cpu = {0};
-const int buffsize = 120;
-const int small_buf = 50;
+
 int last_branch_outcome = 0;
 unsigned char bimodal[1024];
 unsigned int ghr = 0;
@@ -698,7 +700,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
     // Write address first for debug purposes
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
-    char result[buffsize];
+    char result[BUFFSIZE];
 
     if (log_file){
     fwrite(address, 1, strlen(address), log_file);
@@ -707,15 +709,15 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
     fprintf(log_file, "0x%08X", u);
    
     fwrite("     ", 1, 5, log_file);
-    disassemble(cpu.pc, instruction, result, buffsize);
+    disassemble(cpu.pc, instruction, result, BUFFSIZE);
     
     if (flag1)
-    if (strlen(result) + 6 < buffsize) {  // 6 for "   {T}"
+    if (strlen(result) + 6 < BUFFSIZE) {  // 6 for "   {T}"
         strcat(result, "   {T}");
     }
 
     size_t len1 = strlen(result);
-    if (len1 + 1 < buffsize) {
+    if (len1 + 1 < BUFFSIZE) {
       result[len1] = '\n';
       result[len1 + 1] = '\0';
     }
