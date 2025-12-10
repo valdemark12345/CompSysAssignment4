@@ -602,7 +602,6 @@ int get_instruction_type(int inst, struct Stat *stat) {
       fflush(stdout);
     }
     break;
-    // TODO
   } break;
   case 0x73: { // ecall ALU
     decode_i(inst, &instruction_fields);
@@ -615,7 +614,8 @@ int get_instruction_type(int inst, struct Stat *stat) {
   return flag;
 }
 
-struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
+struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct symbols* symbols) {
+  (void)symbols; //Avoid warning
   cpu.registers[0] = 0;
   cpu.mem = mem;
   cpu.cpu_running = 1;
@@ -633,6 +633,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
     // Write address first for debug purposes
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
+    if (log_file){
     fprintf(log_file, "%d", count);
     if (flag == 1){
         fwrite((" => "), 1, 4, log_file);
@@ -641,8 +642,10 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
     }
     fwrite(address, 1, strlen(address), log_file);
     fwrite("   :    ", 1, 8, log_file); // space separator
+    }
     char result[buffsize];
     instruction = load_word_from_memory();
+    if (log_file){
     disassemble(cpu.pc, instruction, result, buffsize);
     size_t len = strlen(result);
     if (len + 1 < buffsize) {
@@ -650,6 +653,8 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
       result[len + 1] = '\0';
     }
     fwrite(result, 1, strlen(result), log_file);
+    }
+    get_instruction_type(instruction, &stats);
     flag = 0;
     flag = get_instruction_type(instruction, &stats);
     stats.insns += 1;

@@ -103,15 +103,21 @@ int main(int argc, char *argv[])
       disassemble_to_stdout(mem, &prog_info);
       exit(0);
     }
+    printf("DEBUG: about simulate here is log path argv[3]=%p -> '%s'\n", (void*)argv[3], argv[3]);
+    fflush(stdout);
     int start_addr = prog_info.start;
     clock_t before = clock();
-    struct Stat stats = simulate(mem, start_addr, log_file);
+    struct Stat stats = simulate(mem, start_addr, log_file, NULL);
     long int num_insns = stats.insns;
     clock_t after = clock();
     int ticks = after - before;
     double mips = (1.0 * num_insns * CLOCKS_PER_SEC) / ticks / 1000000;
+    printf("DEBUG: about to hit branch=%p -> '%s'\n", (void*)argv[3], argv[3]);
+    fflush(stdout);
     if (argc == 4 && !strcmp(argv[2], "-s"))
     {
+      printf("DEBUG: about to open log path argv[3]=%p -> '%s'\n", (void*)argv[3], argv[3]);
+      fflush(stdout);
       log_file = fopen(argv[3], "w");
       if (log_file == NULL)
       {
