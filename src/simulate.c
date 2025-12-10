@@ -7,6 +7,7 @@
 
 struct CPU cpu = {0};
 const int buffsize = 100;
+int last_branch_outcome = 0;
 
 int load_word_from_memory(void) { return (memory_rd_w(cpu.mem, cpu.pc)); }
 
@@ -559,15 +560,26 @@ int get_instruction_type(int inst, struct Stat *stat) {
     break;
   }
   case 0x63: { // branches ALU
+    stat->branches++;
     decode_b(inst, &instruction_fields);
-    flag = execute_b_type(instruction_fields);
-    if (flag) { // If jump is taken that's a wrong guess
-      stat->wrong_nt++;
-    }
-    if (cpu.pc % 4 != 0) {
-      printf("Pc was : %d that is not a valid address \n", cpu.pc);
-      fflush(stdout);
-    }
+    int flag = execute_b_type(instruction_fields);
+    int actual_taken = flag;
+
+    if (actual_taken != 0) //(NT)
+        stat->wrong_nt++;
+
+    int predicted_btfnt = (instruction_fields.imm < 0); //(BTFNT)
+    if (predicted_btfnt != actual_taken)
+        stat->wrong_btfnt++;
+
+    if (actual_taken != 1) //(BIMODAL)
+        stat->wrong_bimodal++;
+
+    int predicted_gshare = last_branch_outcome; //(gshare=)
+    if (predicted_gshare != actual_taken)
+        stat->wrong_gshare++;
+
+
     break;
   }
   case 0x37: { // lui ALU
@@ -626,6 +638,7 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   stats.wrong_bimodal = 0;
   stats.wrong_gshare = 0;
   stats.wrong_btfnt = 0;
+  stats.branches = 0;
   int instruction;
   int flag1 = 0;
 

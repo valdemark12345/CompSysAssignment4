@@ -11,6 +11,7 @@ struct Stat { long int insns;
               long int wrong_btfnt;
               long int wrong_gshare;
               long int wrong_bimodal;
+              long int branches;
               };
 
 // NOTE: Use of symbols provide for nicer disassembly, but is not required for A4.

@@ -108,6 +108,15 @@ int main(int argc, char *argv[])
     int start_addr = prog_info.start;
     clock_t before = clock();
     struct Stat stats = simulate(mem, start_addr, log_file, NULL);
+
+    //Status report.
+    printf("Total executed instructions  : %d\n", stats.insns);
+    printf("Total branches executed      : %d\n", stats.branches);
+    printf("Wrong predictions NT         : %d\n", stats.wrong_nt);
+    printf("Wrong predictions BTFNT      : %d\n", stats.wrong_btfnt);
+    printf("Wrong predictions BIMODAL    : %d\n", stats.wrong_bimodal);
+    printf("Wrong predictions GSHARE     : %d\n", stats.wrong_gshare);
+
     long int num_insns = stats.insns;
     clock_t after = clock();
     int ticks = after - before;
