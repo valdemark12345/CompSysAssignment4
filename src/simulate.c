@@ -586,7 +586,7 @@ int get_instruction_type(int inst, struct Stat *stat) {
   case 0x6F: { // jal ALU
     decode_j(inst, &instruction_fields);
     execute_j_type(instruction_fields);
-    flag = 1;
+    flag = 2;
     if (cpu.pc % 4 != 0) {
       printf("Pc was : %d that is not a valid address \n", cpu.pc);
       fflush(stdout);
@@ -596,7 +596,7 @@ int get_instruction_type(int inst, struct Stat *stat) {
   case 0x67: { // jalr ALU
     decode_i(inst, &instruction_fields);
     execute_i_type(instruction_fields);
-    flag = 1;
+    flag = 2;
     if (cpu.pc % 4 != 0) {
       printf("Pc was : %d that is not a valid address \n", cpu.pc);
       fflush(stdout);
@@ -627,37 +627,49 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file, struct 
   stats.wrong_gshare = 0;
   stats.wrong_btfnt = 0;
   int instruction;
-  int flag = 0;
-  int count = 0;
+  int flag1 = 0;
+
   while (cpu.cpu_running) {
+    if (log_file){
+        fprintf(log_file, "%ld", stats.insns);
+        if (flag1 == 1){
+            fwrite((" => "), 1, 4, log_file);
+        } else {
+            fwrite(("    "), 1, 4, log_file);
+        }
+    }
+
+    flag1 = 0;
+    instruction = load_word_from_memory();
+    flag1 = get_instruction_type(instruction, &stats);
     // Write address first for debug purposes
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
-    if (log_file){
-    fprintf(log_file, "%d", count);
-    if (flag == 1){
-        fwrite((" => "), 1, 4, log_file);
-    } else {
-        fwrite(("    "), 1, 4, log_file);
-    }
-    fwrite(address, 1, strlen(address), log_file);
-    fwrite("   :    ", 1, 8, log_file); // space separator
-    }
     char result[buffsize];
-    instruction = load_word_from_memory();
+
     if (log_file){
+    fwrite(address, 1, strlen(address), log_file);
+    fwrite("  :  ", 1, 5, log_file); // space separator
+    uint32_t u = (uint32_t)instruction;
+    fprintf(log_file, "0x%08X", u);
+   
+    fwrite("     ", 1, 5, log_file);
     disassemble(cpu.pc, instruction, result, buffsize);
-    size_t len = strlen(result);
-    if (len + 1 < buffsize) {
-      result[len] = '\n';
-      result[len + 1] = '\0';
+    
+    if (flag1)
+    if (strlen(result) + 6 < buffsize) {  // 6 for "   {T}"
+        strcat(result, "   {T}");
     }
-    fwrite(result, 1, strlen(result), log_file);
+
+    size_t len1 = strlen(result);
+    if (len1 + 1 < buffsize) {
+      result[len1] = '\n';
+      result[len1 + 1] = '\0';
     }
-    flag = 0;
-    flag = get_instruction_type(instruction, &stats);
+    fwrite(result, 1, strlen(result), log_file);    
+    
+    }
     stats.insns += 1;
-    count++; 
   }
   return stats;
 }
