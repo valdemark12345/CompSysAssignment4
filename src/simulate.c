@@ -530,10 +530,10 @@ void execute_u_type(rv_fields_t instruction) {
   }
 }
 
-void get_instruction_type(int inst, struct Stat *stat) {
+int get_instruction_type(int inst, struct Stat *stat) {
   rv_fields_t instruction_fields = {0};
   instruction_fields.opcode = inst & 0x7F;
-  int flag;
+  int flag = 0;
   switch (instruction_fields.opcode) {
   case 0x33: { // R-type ALU
     decode_r(inst, &instruction_fields);
@@ -612,6 +612,7 @@ void get_instruction_type(int inst, struct Stat *stat) {
   }
   default: {cpu.pc += 4; break;}
   }
+  return flag;
 }
 
 struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
@@ -626,10 +627,18 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
   stats.wrong_gshare = 0;
   stats.wrong_btfnt = 0;
   int instruction;
+  int flag = 0;
+  int count = 0;
   while (cpu.cpu_running) {
     // Write address first for debug purposes
     char address[9];
     snprintf(address, sizeof(address), "%08x", cpu.pc);
+    fprintf(log_file, "%d", count);
+    if (flag == 1){
+        fwrite((" => "), 1, 4, log_file);
+    } else {
+        fwrite(("    "), 1, 4, log_file);
+    }
     fwrite(address, 1, strlen(address), log_file);
     fwrite("   :    ", 1, 8, log_file); // space separator
     char result[buffsize];
@@ -641,8 +650,10 @@ struct Stat simulate(struct memory *mem, int start_addr, FILE *log_file) {
       result[len + 1] = '\0';
     }
     fwrite(result, 1, strlen(result), log_file);
-    get_instruction_type(instruction, &stats);
+    flag = 0;
+    flag = get_instruction_type(instruction, &stats);
     stats.insns += 1;
+    count++; 
   }
   return stats;
 }
